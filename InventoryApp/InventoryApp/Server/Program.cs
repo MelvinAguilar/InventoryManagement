@@ -1,4 +1,8 @@
+global using InventoryApp.Shared;
 global using InventoryApp.Shared.Models;
+global using InventoryApp.Shared.Models.Data;
+global using InventoryApp.Server.Services;
+using InventoryApp.Server.Services.Impl;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,10 +10,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddDbContextPool<inventory_managementContext>(options =>
+builder.Services.AddDbContext<inventory_managementContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProviderService, ProviderService>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<ISupplyService, SupplyService>();
 
 var app = builder.Build();
 
