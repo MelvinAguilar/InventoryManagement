@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.EmployeeDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,25 +15,25 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Employee>>>> GetEmployees()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetEmployeeDto>>>> GetEmployees()
         {
             return HandleResponse(await _employeeService.GetAllEmployees());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Employee>>> GetEmployee(int id)
+        public async Task<ActionResult<ServerResponse<GetEmployeeDto>>> GetEmployee(int id)
         {
             return HandleResponse(await _employeeService.GetEmployeeById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Employee>>> PostEmployee(Employee employee)
+        public async Task<ActionResult<ServerResponse<GetEmployeeDto>>> PostEmployee(AddEmployeeDto employee)
         {
             return HandleResponse(await _employeeService.AddEmployee(employee));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutEmployee(int id, Employee employee)
+        public async Task<ActionResult<ServerResponse<bool>>> PutEmployee(int id, UpdateEmployeeDto employee)
         {
             return HandleResponse(await _employeeService.UpdateEmployee(id, employee));
         }

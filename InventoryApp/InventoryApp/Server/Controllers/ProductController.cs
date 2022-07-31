@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.ProductDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,25 +15,25 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Product>>>> GetProducts()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetProductDto>>>> GetProducts()
         {
             return HandleResponse(await _productService.GetAllProducts());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Product>>> GetProduct(int id)
+        public async Task<ActionResult<ServerResponse<GetProductDto>>> GetProduct(int id)
         {
             return HandleResponse(await _productService.GetProductById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Product>>> PostProduct(Product product)
+        public async Task<ActionResult<ServerResponse<GetProductDto>>> PostProduct(AddProductDto product)
         {
             return HandleResponse(await _productService.AddProduct(product));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutProduct(int id, Product product)
+        public async Task<ActionResult<ServerResponse<bool>>> PutProduct(int id, UpdateProductDto product)
         {
             return HandleResponse(await _productService.UpdateProduct(id, product));
         }

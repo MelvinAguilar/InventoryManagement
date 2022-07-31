@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.CustomerDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class CustomerService : ICustomerService
     {
         public readonly inventory_managementContext _context;
+        public readonly IMapper _mapper;
 
-        public CustomerService(inventory_managementContext context)
+        public CustomerService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all customers
         /// </summary>
         /// <returns>List of customers wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Customer>>> GetAllCustomers()
+        public async Task<ServerResponse<IEnumerable<GetCustomerDto>>> GetAllCustomers()
         {
-            var response = new ServerResponse<IEnumerable<Customer>>();
+            var response = new ServerResponse<IEnumerable<GetCustomerDto>>();
             var customers = await _context.Customers.ToListAsync();
 
             if (customers == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = customers;
+                response.Data = _mapper.Map<IEnumerable<GetCustomerDto>>(customers);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Customer id</param>
         /// <returns>Customer wrapped in a response</returns>
-        public async Task<ServerResponse<Customer>> GetCustomerById(int id)
+        public async Task<ServerResponse<GetCustomerDto>> GetCustomerById(int id)
         {
-            var response = new ServerResponse<Customer>();
+            var response = new ServerResponse<GetCustomerDto>();
             var customer = await _context.Customers.FindAsync(id);
 
             if (customer == null)
@@ -50,7 +54,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = customer;
+                response.Data = _mapper.Map<GetCustomerDto>(customer);
             }
 
             return response;
@@ -61,12 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="customer">Customer to insert into database</param>
         /// <returns>Added category wrapped in a response</returns>  
-        public async Task<ServerResponse<Customer>> AddCustomer(Customer customer)
+        public async Task<ServerResponse<GetCustomerDto>> AddCustomer(AddCustomerDto customer)
         {
-            _context.Customers.Add(customer);
+            var newCustomer = _mapper.Map<Customer>(customer);
+            _context.Customers.Add(newCustomer);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<Customer> { Data = customer };
+            return new ServerResponse<GetCustomerDto> { Data = _mapper.Map<GetCustomerDto>(newCustomer) };
         }
 
         /// <summary>
@@ -75,7 +80,7 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Customer id to update</param>
         /// <param name="customer">Customer to update in database</param>
         /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateCustomer(int id, Customer customer)
+        public async Task<ServerResponse<bool>> UpdateCustomer(int id, UpdateCustomerDto customer)
         {
             var response = new ServerResponse<bool>();
             if (id != customer.Id)
@@ -87,7 +92,9 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try
                 {
-                    _context.Entry(customer).State = EntityState.Modified;
+                    // TODO: Update only a part of the entity
+                    var updatedCustomer = _mapper.Map<Customer>(customer);
+                    _context.Entry(updatedCustomer).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                     
                     response.Data = true;
@@ -95,7 +102,7 @@ namespace InventoryApp.Server.Services.Impl
                 catch (DbUpdateConcurrencyException e)
                 {
                     response.Success = false;
-                    if (!CustomerExists(customer.Id))
+                    if (!CustomerExists(id))
                         response.Message = "Customer not found";
                     else
                         response.Message = "Error updating category: " + e.Message; 

@@ -1,11 +1,13 @@
+using InventoryApp.Server.Dtos.CustomerDtos;
+
 namespace InventoryApp.Server.Services
 {
     public interface ICustomerService
     {
-        Task<ServerResponse<IEnumerable<Customer>>> GetAllCustomers();
-        Task<ServerResponse<Customer>> GetCustomerById(int id);
-        Task<ServerResponse<Customer>> AddCustomer(Customer customer);
-        Task<ServerResponse<bool>> UpdateCustomer(int id, Customer customer);
+        Task<ServerResponse<IEnumerable<GetCustomerDto>>> GetAllCustomers();
+        Task<ServerResponse<GetCustomerDto>> GetCustomerById(int id);
+        Task<ServerResponse<GetCustomerDto>> AddCustomer(AddCustomerDto customer);
+        Task<ServerResponse<bool>> UpdateCustomer(int id, UpdateCustomerDto customer);
         Task<ServerResponse<bool>> DeleteCustomer(int id);
     }
 }

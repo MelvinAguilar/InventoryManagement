@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.ProductDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class ProductService : IProductService
     {
         public readonly inventory_managementContext _context;
+        public readonly IMapper _mapper;
 
-        public ProductService(inventory_managementContext context)
+        public ProductService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all products
         /// </summary>
         /// <returns>List of products wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Product>>> GetAllProducts()
+        public async Task<ServerResponse<IEnumerable<GetProductDto>>> GetAllProducts()
         {
-            var response = new ServerResponse<IEnumerable<Product>>();
+            var response = new ServerResponse<IEnumerable<GetProductDto>>();
             var products = await _context.Products.ToListAsync();
 
             if (products == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = products;
+                response.Data = _mapper.Map<IEnumerable<GetProductDto>>(products);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Product id</param>
         /// <returns>Product wrapped in a response</returns>
-        public async Task<ServerResponse<Product>> GetProductById(int id)
+        public async Task<ServerResponse<GetProductDto>> GetProductById(int id)
         {
-            var response = new ServerResponse<Product>();
+            var response = new ServerResponse<GetProductDto>();
             var product = await _context.Products.FindAsync(id);
 
             if (product == null)
@@ -50,7 +54,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = product;
+                response.Data = _mapper.Map<GetProductDto>(product);
             }
 
             return response;
@@ -61,12 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="product">Product to add</param>
         /// <returns>Added product wrapped in a response</returns>
-        public async Task<ServerResponse<Product>> AddProduct(Product product)
+        public async Task<ServerResponse<GetProductDto>> AddProduct(AddProductDto product)
         {
-            _context.Products.Add(product);
+            var newProduct = _mapper.Map<Product>(product);
+            _context.Products.Add(newProduct);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<Product> { Data = product };
+            return new ServerResponse<GetProductDto> { Data = _mapper.Map<GetProductDto>(newProduct) };
         }
 
         /// <summary>
@@ -75,7 +80,7 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Product id</param>
         /// <param name="product">Product to update</param>
         /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateProduct(int id, Product product)
+        public async Task<ServerResponse<bool>> UpdateProduct(int id, UpdateProductDto product)
         {
             var response = new ServerResponse<bool>();
             
@@ -88,7 +93,9 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try 
                 {
-                    _context.Products.Update(product);
+                    // TODO: Update only a part of the entity
+                    var updatedProduct = _mapper.Map<Product>(product);
+                    _context.Products.Update(updatedProduct);
                     await _context.SaveChangesAsync();
                     
                     response.Data = true;

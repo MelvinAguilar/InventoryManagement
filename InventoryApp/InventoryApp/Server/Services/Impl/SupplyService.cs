@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.SupplyDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class SupplyService : ISupplyService
     {
         public readonly inventory_managementContext _context;
+        public readonly IMapper _mapper;
 
-        public SupplyService(inventory_managementContext context)
+        public SupplyService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all supplies
         /// </summary>
         /// <returns>List of supplies wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Supply>>> GetAllSupplies()
+        public async Task<ServerResponse<IEnumerable<GetSupplyDto>>> GetAllSupplies()
         {
-            var response = new ServerResponse<IEnumerable<Supply>>();
+            var response = new ServerResponse<IEnumerable<GetSupplyDto>>();
             var supplies = await _context.Supplies.ToListAsync();
 
             if (supplies == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = supplies;
+                response.Data = _mapper.Map<IEnumerable<GetSupplyDto>>(supplies);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Supply id</param>
         /// <returns>Supply wrapped in a response</returns>
-        public async Task<ServerResponse<Supply>> GetSupplyById(int id)
+        public async Task<ServerResponse<GetSupplyDto>> GetSupplyById(int id)
         {
-            var response = new ServerResponse<Supply>();
+            var response = new ServerResponse<GetSupplyDto>();
             var supply = await _context.Supplies.FindAsync(id);
 
             if (supply == null)
@@ -50,7 +54,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = supply;
+                response.Data = _mapper.Map<GetSupplyDto>(supply);
             }
 
             return response;
@@ -61,12 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="supply">Supply to add</param>
         /// <returns>Added supply wrapped in a response</returns>
-        public async Task<ServerResponse<Supply>> AddSupply(Supply supply)
+        public async Task<ServerResponse<GetSupplyDto>> AddSupply(AddSupplyDto supply)
         {
-            _context.Supplies.Add(supply);
+            var newSupply = _mapper.Map<Supply>(supply);
+            _context.Supplies.Add(newSupply);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<Supply> { Data = supply };
+            return new ServerResponse<GetSupplyDto> { Data = _mapper.Map<GetSupplyDto>(newSupply) };
         }
         
         /// <summary>
@@ -75,7 +80,7 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Supply Id</param>
         /// <param name="supply">Supply to update</param>
         /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateSupply(int id, Supply supply)
+        public async Task<ServerResponse<bool>> UpdateSupply(int id, UpdateSupplyDto supply)
         {
             var response = new ServerResponse<bool>();
             if (id != supply.Id)
@@ -87,7 +92,9 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try 
                 {
-                    _context.Update(supply);
+                    // TODO: Update only a part of the entity
+                    var updatedSupply = _mapper.Map<Supply>(supply);
+                    _context.Entry(updatedSupply).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
 
                     response.Data = true;
@@ -101,32 +108,6 @@ namespace InventoryApp.Server.Services.Impl
                         response.Message = "Error updating supply: " + e.Message;
                 }
             }
-            return response;
-        }
-
-        /// <summary>
-        /// Delete supply from database
-        /// </summary>
-        /// <param name="id">Supply id</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> DeleteSupply(int id)
-        {
-            var response = new ServerResponse<bool>();
-            var supply = await _context.Supplies.FindAsync(id);
-
-            if (supply == null)
-            {
-                response.Success = false;
-                response.Message = "Supply not found";
-            }
-            else
-            {
-                _context.Supplies.Remove(supply);
-                await _context.SaveChangesAsync();
-
-                response.Data = true;
-            }
-
             return response;
         }
 

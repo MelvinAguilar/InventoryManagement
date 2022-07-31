@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.PurchaseDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class PurchaseService : IPurchaseService
     {
         public readonly inventory_managementContext _context;
+        public readonly IMapper _mapper;
 
-        public PurchaseService(inventory_managementContext context)
+        public PurchaseService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all purchases
         /// </summary>
         /// <returns>List of purchases wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Purchase>>> GetAllPurchases()
+        public async Task<ServerResponse<IEnumerable<GetPurchaseDto>>> GetAllPurchases()
         {
-            var response = new ServerResponse<IEnumerable<Purchase>>();
+            var response = new ServerResponse<IEnumerable<GetPurchaseDto>>();
             var purchases = await _context.Purchases.ToListAsync();
 
             if (purchases == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = purchases;
+                response.Data = _mapper.Map<IEnumerable<GetPurchaseDto>>(purchases);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Purchase id</param>
         /// <returns>Purchase wrapped in a response</returns>
-        public async Task<ServerResponse<Purchase>> GetPurchaseById(int id)
+        public async Task<ServerResponse<GetPurchaseDto>> GetPurchaseById(int id)
         {
-            var response = new ServerResponse<Purchase>();
+            var response = new ServerResponse<GetPurchaseDto>();
             var purchase = await _context.Purchases.FindAsync(id);
 
             if (purchase == null)
@@ -50,7 +54,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = purchase;
+                response.Data = _mapper.Map<GetPurchaseDto>(purchase);
             }
 
             return response;
@@ -61,12 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="purchase">Purchase to add</param>
         /// <returns>Added purchase wrapped in a response</returns>
-        public async Task<ServerResponse<Purchase>> AddPurchase(Purchase purchase)
+        public async Task<ServerResponse<GetPurchaseDto>> AddPurchase(AddPurchaseDto purchase)
         {
-            _context.Purchases.Add(purchase);
+            var newPurchase = _mapper.Map<Purchase>(purchase);
+            _context.Purchases.Add(newPurchase);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<Purchase> { Data = purchase };
+            return new ServerResponse<GetPurchaseDto> { Data = _mapper.Map<GetPurchaseDto>(newPurchase) };
         }
 
         /// <summary>
@@ -75,7 +80,7 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Purchase Id</param>
         /// <param name="purchase">Purchase to update</param>
         /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdatePurchase(int id, Purchase purchase)
+        public async Task<ServerResponse<bool>> UpdatePurchase(int id, UpdatePurchaseDto purchase)
         {
             var response = new ServerResponse<bool>();
             if (id != purchase.Id)
@@ -87,7 +92,9 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try 
                 {
-                    _context.Entry(purchase).State = EntityState.Modified;
+                    // TODO: Update only a part of the entity
+                    var updatedPurchase = _mapper.Map<Purchase>(purchase);
+                    _context.Entry(updatedPurchase).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                     
                     response.Data = true;
@@ -101,32 +108,6 @@ namespace InventoryApp.Server.Services.Impl
                     else 
                         response.Message = "Error updating purchase: " + e.Message;
                 }
-            }
-
-            return response;
-        }
-
-        /// <summary>
-        /// Delete purchase from database
-        /// </summary>
-        /// <param name="id">Purchase Id</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> DeletePurchase(int id)
-        {
-            var response = new ServerResponse<bool>();
-            var purchase = await _context.Purchases.FindAsync(id);
-
-            if (purchase == null)
-            {
-                response.Success = false;
-                response.Message = "Purchase not found";
-            }
-            else
-            {
-                _context.Purchases.Remove(purchase);
-                await _context.SaveChangesAsync();
-
-                response.Data = true;
             }
 
             return response;

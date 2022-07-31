@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.ProviderDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class ProviderService : IProviderService
     {
         public readonly inventory_managementContext _context;
+        public readonly IMapper _mapper;
 
-        public ProviderService(inventory_managementContext context)
+        public ProviderService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all providers
         /// </summary>
         /// <returns>List of providers wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Provider>>> GetAllProviders()
+        public async Task<ServerResponse<IEnumerable<GetProviderDto>>> GetAllProviders()
         {
-            var response = new ServerResponse<IEnumerable<Provider>>();
+            var response = new ServerResponse<IEnumerable<GetProviderDto>>();
             var providers = await _context.Providers.ToListAsync();
 
             if (providers == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = providers;
+                response.Data = _mapper.Map<IEnumerable<GetProviderDto>>(providers);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Provider id</param>
         /// <returns>Provider wrapped in a response</returns>
-        public async Task<ServerResponse<Provider>> GetProviderById(int id)
+        public async Task<ServerResponse<GetProviderDto>> GetProviderById(int id)
         {
-            var response = new ServerResponse<Provider>();
+            var response = new ServerResponse<GetProviderDto>();
             var provider = await _context.Providers.FindAsync(id);
 
             if (provider == null)
@@ -50,7 +54,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = provider;
+                response.Data = _mapper.Map<GetProviderDto>(provider);
             }
 
             return response;
@@ -61,12 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="provider">Provider to add</param>
         /// <returns>Added provider wrapped in a response</returns>
-        public async Task<ServerResponse<Provider>> AddProvider(Provider provider)
+        public async Task<ServerResponse<GetProviderDto>> AddProvider(AddProviderDto provider)
         {
-            _context.Providers.Add(provider);
+            var newProvider = _mapper.Map<Provider>(provider);
+            _context.Providers.Add(newProvider);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<Provider> { Data = provider };
+            return new ServerResponse<GetProviderDto> { Data = _mapper.Map<GetProviderDto>(newProvider) };
         }
 
         /// <summary>
@@ -75,7 +80,7 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Provider Id</param>
         /// <param name="provider">Provider to update</param>
         /// <returns>Server response</returns>
-        public async Task<ServerResponse<bool>> UpdateProvider(int id, Provider provider)
+        public async Task<ServerResponse<bool>> UpdateProvider(int id, UpdateProviderDto provider)
         {
             var response = new ServerResponse<bool>();
             if (id != provider.Id)
@@ -87,7 +92,9 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try
                 {
-                    _context.Entry(provider).State = EntityState.Modified;
+                    // TODO: Update only a part of the entity
+                    var updatedProvider = _mapper.Map<Provider>(provider);
+                    _context.Entry(updatedProvider).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
 
                     response.Data = true;

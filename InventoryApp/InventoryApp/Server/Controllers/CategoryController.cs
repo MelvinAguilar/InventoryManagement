@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.CategoryDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,25 +15,25 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Category>>>> GetCategories()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetCategoryDto>>>> GetCategories()
         {
             return HandleResponse(await _categoryService.GetAllCategories());
         }
         
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Category>>> GetCategory(int id)
+        public async Task<ActionResult<ServerResponse<GetCategoryDto>>> GetCategory(int id)
         {
             return HandleResponse(await _categoryService.GetCategoryById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Category>>> PostCategory(Category category)
+        public async Task<ActionResult<ServerResponse<GetCategoryDto>>> PostCategory(AddCategoryDto category)
         {
             return HandleResponse(await _categoryService.AddCategory(category));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutCategory(int id, Category category)
+        public async Task<ActionResult<ServerResponse<bool>>> PutCategory(int id, UpdateCategoryDto category)
         {
             return HandleResponse(await _categoryService.UpdateCategory(id, category));
         }

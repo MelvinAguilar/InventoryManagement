@@ -1,11 +1,13 @@
+using InventoryApp.Server.Dtos.EmployeeDtos;
+
 namespace InventoryApp.Server.Services
 {
     public interface IEmployeeService
     {
-        Task<ServerResponse<IEnumerable<Employee>>> GetAllEmployees();
-        Task<ServerResponse<Employee>> GetEmployeeById(int id);
-        Task<ServerResponse<Employee>> AddEmployee(Employee employee);
-        Task<ServerResponse<bool>> UpdateEmployee(int id, Employee employee);
+        Task<ServerResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees();
+        Task<ServerResponse<GetEmployeeDto>> GetEmployeeById(int id);
+        Task<ServerResponse<GetEmployeeDto>> AddEmployee(AddEmployeeDto employee);
+        Task<ServerResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee);
         Task<ServerResponse<bool>> DeleteEmployee(int id);
     }
 }

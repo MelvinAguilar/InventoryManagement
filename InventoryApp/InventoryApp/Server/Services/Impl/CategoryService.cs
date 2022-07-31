@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.CategoryDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class CategoryService : ICategoryService
     {
         private readonly inventory_managementContext _context;
+        private readonly IMapper _mapper;
 
-        public CategoryService(inventory_managementContext context)
+        public CategoryService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all categories
         /// </summary>
         /// <returns>List of categories wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Category>>> GetAllCategories()
+        public async Task<ServerResponse<IEnumerable<GetCategoryDto>>> GetAllCategories()
         {
-            var response = new ServerResponse<IEnumerable<Category>>();
+            var response = new ServerResponse<IEnumerable<GetCategoryDto>>();
             var categories = await _context.Categories.ToListAsync();
 
             if (categories == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = categories;
+                response.Data = _mapper.Map<IEnumerable<GetCategoryDto>>(categories);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Category id</param>
         /// <returns>Category wrapped in a response</returns>
-        public async Task<ServerResponse<Category>> GetCategoryById(int id)
+        public async Task<ServerResponse<GetCategoryDto>> GetCategoryById(int id)
         {
-            var response = new ServerResponse<Category>();
+            var response = new ServerResponse<GetCategoryDto>();
             var category = await _context.Categories.FindAsync(id);
 
             if (category == null)
@@ -49,7 +53,7 @@ namespace InventoryApp.Server.Services.Impl
                 response.Message = "Category not found";
             } else
             {
-                response.Data = category;
+                response.Data = _mapper.Map<GetCategoryDto>(category);
             }
 
             return response;
@@ -60,12 +64,26 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="category">Category to insert into database</param>
         /// <returns>Added category wrapped in a response</returns>  
-        public async Task<ServerResponse<Category>> AddCategory(Category category)
+        public async Task<ServerResponse<GetCategoryDto>> AddCategory(AddCategoryDto category)
         {
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            var response = new ServerResponse<GetCategoryDto>();
+            // Try catch block to catch any errors that may occur while inserting into database
+            try {
+                var newCategory = _mapper.Map<Category>(category);
+                _context.Categories.Add(newCategory);
+                await _context.SaveChangesAsync();
+
+                response.Data = _mapper.Map<GetCategoryDto>(newCategory);
+            } catch (DbUpdateException e)
+            {
+                response.Success = false;
+                if (CategoryExists(category.Name))
+                    response.Message = "Category already exists";
+                else
+                    response.Message = "Error adding category: " + e.Message;
+            }
             
-            return new ServerResponse<Category> { Data = category };
+            return response;
         }
 
         /// <summary>
@@ -74,28 +92,43 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Category id to update</param>
         /// <param name="category">Category</param>
         /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateCategory(int id, Category category)
+        public async Task<ServerResponse<bool>> UpdateCategory(int id, UpdateCategoryDto category)
         {
             var response = new ServerResponse<bool>();
             if (id != category.Id)
             {
                 response.Success = false;
                 response.Message = "Category id mismatch";
+                return response;
+            }
+
+            // Get category from database
+            var existingCategory = await _context.Categories.FindAsync(id);
+            if (existingCategory == null)
+            {
+                response.Success = false;
+                response.Message = "Category not found";
             }
             else
             {
                 try
                 {
-                    _context.Entry(category).State = EntityState.Modified;
+                    // Update only a few properties of the category in database
+                    // I dont want to update the DateCreated property
+                    // that's why I don't use: "_context.Entry(existingCategory).State = EntityState.Modified;"
+                    _context.Categories.Attach(existingCategory);
+                    existingCategory.Name = category.Name;
+                    existingCategory.Description = category.Description;
+
                     await _context.SaveChangesAsync();
-                    
                     response.Data = true;
-                } 
-                catch (DbUpdateConcurrencyException e)
+                }
+                catch (DbUpdateException e)
                 {
+                    // If enter here, it means that the category name is already taken by another category
                     response.Success = false;
-                    if (!CategoryExists(id))
-                        response.Message = "Category not found";
+                    if (CategoryExists(category.Name))
+                        response.Message = "Category already exists";
                     else
                         response.Message = "Error updating category: " + e.Message;
                 }
@@ -106,7 +139,7 @@ namespace InventoryApp.Server.Services.Impl
 
         /// <summary>
         /// Delete category from database
-        /// </summary>
+        /// </summary>s
         /// <param name="id">Category id to delete</param>
         /// <returns>Success or error message in server response</returns>
         public async Task<ServerResponse<bool>> DeleteCategory(int id)
@@ -120,10 +153,19 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
-                
-                response.Data = true;
+                // Try catch block for deleting category with foreign key constraint error
+                try
+                {
+                    _context.Categories.Remove(category);
+                    await _context.SaveChangesAsync();
+                    
+                    response.Data = true;
+                } 
+                catch (DbUpdateException)
+                {
+                    response.Success = false;
+                    response.Message = "Error deleting category: There are products that contain this category";
+                }
             }
             
             return response;
@@ -136,5 +178,13 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if category exists, false otherwise</returns>      
         private bool CategoryExists(int id)
             => (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        /// <summary>
+        /// Check if category exists
+        /// </summary>
+        /// <param name="name">Category name</param>
+        /// <returns>True if category exists, false otherwise</returns>
+        private bool CategoryExists(string name)
+            => (_context.Categories?.Any(e => e.Name == name)).GetValueOrDefault();
     }
 }

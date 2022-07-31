@@ -1,11 +1,12 @@
+using InventoryApp.Server.Dtos.SupplyDtos;
+
 namespace InventoryApp.Server.Services
 {
     public interface ISupplyService
     {
-        Task<ServerResponse<IEnumerable<Supply>>> GetAllSupplies();
-        Task<ServerResponse<Supply>> GetSupplyById(int id);
-        Task<ServerResponse<Supply>> AddSupply(Supply supply);
-        Task<ServerResponse<bool>> UpdateSupply(int id, Supply supply);
-        Task<ServerResponse<bool>> DeleteSupply(int id);
+        Task<ServerResponse<IEnumerable<GetSupplyDto>>> GetAllSupplies();
+        Task<ServerResponse<GetSupplyDto>> GetSupplyById(int id);
+        Task<ServerResponse<GetSupplyDto>> AddSupply(AddSupplyDto supply);
+        Task<ServerResponse<bool>> UpdateSupply(int id, UpdateSupplyDto supply);
     }
 }

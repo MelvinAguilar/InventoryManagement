@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.ProviderDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,25 +15,25 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Provider>>>> GetProviders()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetProviderDto>>>> GetProviders()
         {
             return HandleResponse(await _providerService.GetAllProviders());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Provider>>> GetProvider(int id)
+        public async Task<ActionResult<ServerResponse<GetProviderDto>>> GetProvider(int id)
         {
             return HandleResponse(await _providerService.GetProviderById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Provider>>> PostProvider(Provider provider)
+        public async Task<ActionResult<ServerResponse<GetProviderDto>>> PostProvider(AddProviderDto provider)
         {
             return HandleResponse(await _providerService.AddProvider(provider));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutProvider(int id, Provider provider)
+        public async Task<ActionResult<ServerResponse<bool>>> PutProvider(int id, UpdateProviderDto provider)
         {
             return HandleResponse(await _providerService.UpdateProvider(id, provider));
         }

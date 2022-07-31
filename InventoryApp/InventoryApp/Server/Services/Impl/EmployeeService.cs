@@ -1,3 +1,5 @@
+using AutoMapper;
+using InventoryApp.Server.Dtos.EmployeeDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl
@@ -5,19 +7,21 @@ namespace InventoryApp.Server.Services.Impl
     public class EmployeeService : IEmployeeService
     {
         public readonly inventory_managementContext _context;
+        public readonly IMapper _mapper;
 
-        public EmployeeService(inventory_managementContext context)
+        public EmployeeService(inventory_managementContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Get all employees
         /// </summary>
         /// <returns>List of employees wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<Employee>>> GetAllEmployees()
+        public async Task<ServerResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees()
         {
-            var response = new ServerResponse<IEnumerable<Employee>>();
+            var response = new ServerResponse<IEnumerable<GetEmployeeDto>>();
             var employees = await _context.Employees.ToListAsync();
 
             if (employees == null)
@@ -27,7 +31,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = employees;
+                response.Data = _mapper.Map<IEnumerable<GetEmployeeDto>>(employees);
             }
 
             return response;
@@ -38,9 +42,9 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Employee id</param>
         /// <returns>Employee wrapped in a response</returns>
-        public async Task<ServerResponse<Employee>> GetEmployeeById(int id)
+        public async Task<ServerResponse<GetEmployeeDto>> GetEmployeeById(int id)
         {
-            var response = new ServerResponse<Employee>();
+            var response = new ServerResponse<GetEmployeeDto>();
             var employee = await _context.Employees.FindAsync(id);
 
             if (employee == null)
@@ -50,7 +54,7 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                response.Data = employee;
+                response.Data = _mapper.Map<GetEmployeeDto>(employee);
             }
 
             return response;
@@ -61,12 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="employee">Employee to add</param>
         /// <returns>Added employee wrapped in a response</returns>
-        public async Task<ServerResponse<Employee>> AddEmployee(Employee employee)
+        public async Task<ServerResponse<GetEmployeeDto>> AddEmployee(AddEmployeeDto employee)
         {
-            _context.Employees.Add(employee);
+            var newEmployee = _mapper.Map<Employee>(employee);
+            _context.Employees.Add(newEmployee);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<Employee> { Data = employee };
+            return new ServerResponse<GetEmployeeDto> { Data = _mapper.Map<GetEmployeeDto>(newEmployee) };
         }
 
         /// <summary>
@@ -75,7 +80,7 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Employee Id</param>
         /// <param name="employee">Employee to update</param>
         /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateEmployee(int id, Employee employee)
+        public async Task<ServerResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee)
         {
             var response = new ServerResponse<bool>();
             if (id != employee.Id)
@@ -87,7 +92,9 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try
                 {
-                    _context.Entry(employee).State = EntityState.Modified;
+                    // TODO: Update only a part of the employee
+                    var updatedEmployee = _mapper.Map<Employee>(employee);
+                    _context.Entry(updatedEmployee).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                     
                     response.Data = true;

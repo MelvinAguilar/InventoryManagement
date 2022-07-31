@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<inventory_managementContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllersWithViews();
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();

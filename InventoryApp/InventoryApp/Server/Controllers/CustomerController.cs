@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.CustomerDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,25 +15,25 @@ namespace InventoryApp.Server.Controllers
         }
   
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Customer>>>> GetCustomers()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetCustomerDto>>>> GetCustomers()
         {
             return HandleResponse(await _customerService.GetAllCustomers());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Customer>>> GetCustomer(int id)
+        public async Task<ActionResult<ServerResponse<GetCustomerDto>>> GetCustomer(int id)
         {
             return HandleResponse(await _customerService.GetCustomerById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Customer>>> PostCustomer(Customer customer)
+        public async Task<ActionResult<ServerResponse<GetCustomerDto>>> PostCustomer(AddCustomerDto customer)
         {
             return HandleResponse(await _customerService.AddCustomer(customer));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutCustomer(int id, Customer customer)
+        public async Task<ActionResult<ServerResponse<bool>>> PutCustomer(int id, UpdateCustomerDto customer)
         {
             return HandleResponse(await _customerService.UpdateCustomer(id, customer));
         }

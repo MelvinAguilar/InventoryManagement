@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.SupplyDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,33 +15,27 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Supply>>>> GetSupplies()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetSupplyDto>>>> GetSupplies()
         {
             return HandleResponse(await _supplyService.GetAllSupplies());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Supply>>> GetSupply(int id)
+        public async Task<ActionResult<ServerResponse<GetSupplyDto>>> GetSupply(int id)
         {
             return HandleResponse(await _supplyService.GetSupplyById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Supply>>> PostSupply(Supply supply)
+        public async Task<ActionResult<ServerResponse<GetSupplyDto>>> PostSupply(AddSupplyDto supply)
         {
             return HandleResponse(await _supplyService.AddSupply(supply));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutSupply(int id, Supply supply)
+        public async Task<ActionResult<ServerResponse<bool>>> PutSupply(int id, UpdateSupplyDto supply)
         {
             return HandleResponse(await _supplyService.UpdateSupply(id, supply));
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> DeleteSupply(int id)
-        {
-            return HandleResponse(await _supplyService.DeleteSupply(id));
         }
 
         // Method to generalize to avoid code duplication

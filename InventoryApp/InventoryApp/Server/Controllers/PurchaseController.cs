@@ -1,3 +1,4 @@
+using InventoryApp.Server.Dtos.PurchaseDtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
@@ -14,33 +15,27 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<Purchase>>>> GetPurchases()
+        public async Task<ActionResult<ServerResponse<IEnumerable<GetPurchaseDto>>>> GetPurchases()
         {
             return HandleResponse(await _purchaseService.GetAllPurchases());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<Purchase>>> GetPurchase(int id)
+        public async Task<ActionResult<ServerResponse<GetPurchaseDto>>> GetPurchase(int id)
         {
             return HandleResponse(await _purchaseService.GetPurchaseById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<Purchase>>> PostPurchase(Purchase purchase)
+        public async Task<ActionResult<ServerResponse<GetPurchaseDto>>> PostPurchase(AddPurchaseDto purchase)
         {
             return HandleResponse(await _purchaseService.AddPurchase(purchase));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutPurchase(int id, Purchase purchase)
+        public async Task<ActionResult<ServerResponse<bool>>> PutPurchase(int id, UpdatePurchaseDto purchase)
         {
             return HandleResponse(await _purchaseService.UpdatePurchase(id, purchase));
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> DeletePurchase(int id)
-        {
-            return HandleResponse(await _purchaseService.DeletePurchase(id));
         }
 
         // Method to generalize to avoid code duplication
