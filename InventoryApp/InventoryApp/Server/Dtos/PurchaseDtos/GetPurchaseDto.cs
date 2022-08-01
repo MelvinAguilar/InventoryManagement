@@ -1,4 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using InventoryApp.Server.Dtos.CustomerDtos;
+using InventoryApp.Server.Dtos.EmployeeDtos;
+using InventoryApp.Server.Dtos.PurchaseDetailDtos;
 
 namespace InventoryApp.Server.Dtos.PurchaseDtos
 {
@@ -7,6 +10,11 @@ namespace InventoryApp.Server.Dtos.PurchaseDtos
     /// </summary>
     public partial class GetPurchaseDto
     {
+        public GetPurchaseDto()
+        {
+            PurchaseDetails = new HashSet<GetPurchaseDetailDto>();
+        }
+
         [Column("id")]
         public int Id { get; set; }
         [Column("gross_amount", TypeName = "money")]
@@ -28,9 +36,12 @@ namespace InventoryApp.Server.Dtos.PurchaseDtos
 
         [ForeignKey("IdCustomer")]
         [InverseProperty("Purchases")]
-        public virtual Customer IdCustomerNavigation { get; set; } = null!;
+        public virtual GetCustomerDto IdCustomerNavigation { get; set; } = null!;
         [ForeignKey("IdEmployee")]
         [InverseProperty("Purchases")]
-        public virtual Employee IdEmployeeNavigation { get; set; } = null!;
+        public virtual GetEmployeeDto IdEmployeeNavigation { get; set; } = null!;
+
+        [InverseProperty("IdPurchaseNavigation")]
+        public virtual ICollection<GetPurchaseDetailDto> PurchaseDetails { get; set; }
     }
 }

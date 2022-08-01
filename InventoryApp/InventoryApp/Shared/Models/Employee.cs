@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
 {
     [Table("EMPLOYEE")]
+    [Index("PhoneNumber", Name = "UQ__EMPLOYEE__A1936A6BC2BF7699", IsUnique = true)]
+    [Index("Email", Name = "UQ__EMPLOYEE__AB6E6164BF45D54E", IsUnique = true)]
     public partial class Employee
     {
         public Employee()
@@ -36,10 +39,26 @@ namespace InventoryApp.Shared.Models
         public string PhoneNumber { get; set; } = null!;
         [Column("avatar")]
         public byte[]? Avatar { get; set; }
-        [Column("password")]
+        [Column("passwordHash")]
         [StringLength(256)]
         [Unicode(false)]
-        public string Password { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
+        [Column("passwordSalt")]
+        [StringLength(256)]
+        [Unicode(false)]
+        public string PasswordSalt { get; set; } = null!;
+        [Column("verificationToken")]
+        [StringLength(256)]
+        [Unicode(false)]
+        public string? VerificationToken { get; set; }
+        [Column("verifiedAt", TypeName = "datetime")]
+        public DateTime? VerifiedAt { get; set; }
+        [Column("passwordResetToken")]
+        [StringLength(256)]
+        [Unicode(false)]
+        public string? PasswordResetToken { get; set; }
+        [Column("resetTokenExpires", TypeName = "datetime")]
+        public DateTime? ResetTokenExpires { get; set; }
         [Column("date_created", TypeName = "datetime")]
         public DateTime DateCreated { get; set; }
         [Column("date_modified", TypeName = "datetime")]
@@ -50,8 +69,12 @@ namespace InventoryApp.Shared.Models
         [ForeignKey("IdRol")]
         [InverseProperty("Employees")]
         public virtual Rol IdRolNavigation { get; set; } = null!;
+
+        [JsonIgnore]
         [InverseProperty("IdEmployeeNavigation")]
         public virtual ICollection<Purchase> Purchases { get; set; }
+
+        [JsonIgnore]
         [InverseProperty("IdEmployeeNavigation")]
         public virtual ICollection<Supply> Supplies { get; set; }
     }

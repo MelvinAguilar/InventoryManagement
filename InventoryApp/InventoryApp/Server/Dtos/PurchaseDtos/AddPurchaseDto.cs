@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using InventoryApp.Server.Dtos.PurchaseDetailDtos;
 
 namespace InventoryApp.Server.Dtos.PurchaseDtos
 {
@@ -8,6 +9,11 @@ namespace InventoryApp.Server.Dtos.PurchaseDtos
     /// </summary>
     public partial class AddPurchaseDto
     {
+        public AddPurchaseDto()
+        {
+            PurchaseDetails = new HashSet<GetPurchaseDetailDto>();
+        }
+
         [Column("gross_amount", TypeName = "money")]
         public decimal GrossAmount { get; set; }
         [Column("tax", TypeName = "decimal(5, 2)")]
@@ -24,5 +30,8 @@ namespace InventoryApp.Server.Dtos.PurchaseDtos
         public int IdEmployee { get; set; }
         [Column("id_customer")]
         public int IdCustomer { get; set; }
+
+        [InverseProperty("IdPurchaseNavigation")]
+        public virtual ICollection<GetPurchaseDetailDto> PurchaseDetails { get; set; }
     }
 }

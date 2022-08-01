@@ -67,11 +67,27 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>Added category wrapped in a response</returns>  
         public async Task<ServerResponse<GetCustomerDto>> AddCustomer(AddCustomerDto customer)
         {
-            var newCustomer = _mapper.Map<Customer>(customer);
-            _context.Customers.Add(newCustomer);
-            await _context.SaveChangesAsync();
+            var response = new ServerResponse<GetCustomerDto>();
+            // Try catch block to catch any errors that may occur while inserting into database
+            try 
+            {
+                var newCustomer = _mapper.Map<Customer>(customer);
+                _context.Customers.Add(newCustomer);
+                await _context.SaveChangesAsync();
 
-            return new ServerResponse<GetCustomerDto> { Data = _mapper.Map<GetCustomerDto>(newCustomer) };
+                response.Data = _mapper.Map<GetCustomerDto>(newCustomer);
+            } 
+            catch (DbUpdateException e) 
+            {
+                // If enter here, it means that the phone number already exists in the database
+                response.Success = false;
+                if (CustomerExists(customer.PhoneNumber))
+                    response.Message = "Customer with phone number " + customer.PhoneNumber + " already exists";
+                else
+                    response.Message = "Error adding category: " + e.Message;
+            }
+
+            return response;
         }
 
         /// <summary>
@@ -87,27 +103,42 @@ namespace InventoryApp.Server.Services.Impl
             {
                 response.Success = false;
                 response.Message = "Category id mismatch";
+                return response;
             }
-            else
+
+            var existingCustomer = await _context.Customers.FindAsync(id);
+            if (existingCustomer == null)
+            { 
+                response.Success = false;
+                response.Message = "Customer not found";
+            } 
+            else 
             {
                 try
                 {
-                    // TODO: Update only a part of the entity
-                    var updatedCustomer = _mapper.Map<Customer>(customer);
-                    _context.Entry(updatedCustomer).State = EntityState.Modified;
+                    // Update only a few properties of the customer in database
+                    // I dont want to update the DateCreated property
+                    // that's why I don't use: "_context.Entry(customer).State = EntityState.Modified;"
+                    _context.Customers.Attach(existingCustomer);
+                    existingCustomer.FirstName = customer.FirstName;
+                    existingCustomer.LastName = customer.LastName;
+                    existingCustomer.PhoneNumber = customer.PhoneNumber;
+                    existingCustomer.DateModified = DateTime.Now;
+
                     await _context.SaveChangesAsync();
-                    
                     response.Data = true;
                 }
-                catch (DbUpdateConcurrencyException e)
+                catch (DbUpdateException e)
                 {
+                    // If enter here, it means that the phone number is already in use
                     response.Success = false;
-                    if (!CustomerExists(id))
-                        response.Message = "Customer not found";
+                    if (CustomerExists(customer.PhoneNumber))
+                        response.Message = "Customer with phone number " + customer.PhoneNumber + " already exists";
                     else
-                        response.Message = "Error updating category: " + e.Message; 
-                }
+                        response.Message = "Error adding category: " + e.Message;
+                }               
             }
+
             return response;
         }
 
@@ -127,10 +158,19 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                _context.Customers.Remove(customer);
-                await _context.SaveChangesAsync();
-                
-                response.Data = true;
+                // Try catch block for deleting customer with related purchase orders
+                try
+                {
+                    _context.Customers.Remove(customer);
+                    await _context.SaveChangesAsync();
+
+                    response.Data = true;
+                }
+                catch (DbUpdateException)
+                {
+                    response.Success = false;
+                    response.Message = "Error deleting customer: Customer has related purchase orders";
+                }   
             }
 
             return response;
@@ -143,5 +183,13 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if customer exists, false otherwise</returns>
         private bool CustomerExists(int id) 
             => (_context.Customers?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        /// <summary>
+        /// Check if customer exists in database
+        /// </summary>
+        /// <param name="phoneNumber">Customer phone number to check</param>
+        /// <returns>True if customer exists, false otherwise</returns>
+        private bool CustomerExists(string phoneNumber) 
+            => (_context.Customers?.Any(c => c.PhoneNumber == phoneNumber)).GetValueOrDefault();
     }
 }

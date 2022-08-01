@@ -2,6 +2,12 @@ using AutoMapper;
 using InventoryApp.Server.Dtos.PurchaseDtos;
 using Microsoft.EntityFrameworkCore;
 
+/*
+    TODO: Add the following:
+    1. Add purchase details 
+    2. Update purchase details
+*/
+
 namespace InventoryApp.Server.Services.Impl
 {
     public class PurchaseService : IPurchaseService
@@ -22,7 +28,11 @@ namespace InventoryApp.Server.Services.Impl
         public async Task<ServerResponse<IEnumerable<GetPurchaseDto>>> GetAllPurchases()
         {
             var response = new ServerResponse<IEnumerable<GetPurchaseDto>>();
-            var purchases = await _context.Purchases.ToListAsync();
+            // Get purchases with related entities
+            var purchases = await _context.Purchases
+                .Include(p => p.IdCustomerNavigation)
+                .Include(p => p.IdEmployeeNavigation)
+                .ToListAsync();
 
             if (purchases == null)
             {
@@ -45,7 +55,13 @@ namespace InventoryApp.Server.Services.Impl
         public async Task<ServerResponse<GetPurchaseDto>> GetPurchaseById(int id)
         {
             var response = new ServerResponse<GetPurchaseDto>();
-            var purchase = await _context.Purchases.FindAsync(id);
+            // Get purchase with related entities and details
+            var purchase = await _context.Purchases
+                .Include(p => p.IdCustomerNavigation)
+                .Include(p => p.IdEmployeeNavigation)
+                .Include(p => p.PurchaseDetails)
+                .ThenInclude(pd => pd.IdProductNavigation)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (purchase == null)
             {
@@ -86,7 +102,7 @@ namespace InventoryApp.Server.Services.Impl
             if (id != purchase.Id)
             {
                 response.Success = false;
-                response.Message = "Purchase id mismatch"; //"Ids do not match"
+                response.Message = "Purchase id mismatch";
             } 
             else 
             {

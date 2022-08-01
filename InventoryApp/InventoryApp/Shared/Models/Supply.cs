@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
@@ -23,6 +24,8 @@ namespace InventoryApp.Shared.Models
         public decimal Payment { get; set; }
         [Column("date_supplied", TypeName = "datetime")]
         public DateTime DateSupplied { get; set; }
+        [Column("date_modified", TypeName = "datetime")]
+        public DateTime? DateModified { get; set; }
         [Column("id_employee")]
         public int IdEmployee { get; set; }
         [Column("id_provider")]
@@ -34,6 +37,8 @@ namespace InventoryApp.Shared.Models
         [ForeignKey("IdProvider")]
         [InverseProperty("Supplies")]
         public virtual Provider IdProviderNavigation { get; set; } = null!;
+
+        [JsonIgnore]
         [InverseProperty("IdSupplyNavigation")]
         public virtual ICollection<SupplyDetail> SupplyDetails { get; set; }
     }

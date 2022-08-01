@@ -1,4 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using InventoryApp.Server.Dtos.EmployeeDtos;
+using InventoryApp.Server.Dtos.ProviderDtos;
+using InventoryApp.Server.Dtos.SupplyDetailDtos;
 
 namespace InventoryApp.Server.Dtos.SupplyDtos
 {
@@ -9,7 +12,7 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
     {
         public GetSupplyDto()
         {
-            SupplyDetails = new HashSet<SupplyDetail>();
+            SupplyDetails = new HashSet<GetSupplyDetailDto>();
         }
 
         [Column("id")]
@@ -27,11 +30,11 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
 
         [ForeignKey("IdEmployee")]
         [InverseProperty("Supplies")]
-        public virtual Employee IdEmployeeNavigation { get; set; } = null!;
+        public virtual GetEmployeeDto IdEmployeeNavigation { get; set; } = null!;
         [ForeignKey("IdProvider")]
         [InverseProperty("Supplies")]
-        public virtual Provider IdProviderNavigation { get; set; } = null!;
+        public virtual GetProviderDto IdProviderNavigation { get; set; } = null!;
         [InverseProperty("IdSupplyNavigation")]
-        public virtual ICollection<SupplyDetail> SupplyDetails { get; set; }
+        public virtual ICollection<GetSupplyDetailDto> SupplyDetails { get; set; }
     }
 }

@@ -11,8 +11,5 @@ namespace InventoryApp.Server.Dtos.EmployeeDtos
         [Key]
         [Column("id")]
         public int Id { get; set; }
-
-        [Column("date_modified", TypeName = "datetime")]
-        public DateTime? DateModified { get; set; } = DateTime.Now;
     }
 }

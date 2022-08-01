@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
@@ -38,14 +39,20 @@ namespace InventoryApp.Shared.Models
         public byte[]? Image { get; set; }
         [Column("date_created", TypeName = "datetime")]
         public DateTime DateCreated { get; set; }
+        [Column("date_modified", TypeName = "datetime")]
+        public DateTime? DateModified { get; set; }
         [Column("id_category")]
         public int IdCategory { get; set; }
 
         [ForeignKey("IdCategory")]
         [InverseProperty("Products")]
         public virtual Category IdCategoryNavigation { get; set; } = null!;
+
+        [JsonIgnore]
         [InverseProperty("IdProductNavigation")]
         public virtual ICollection<PurchaseDetail> PurchaseDetails { get; set; }
+
+        [JsonIgnore]
         [InverseProperty("IdProductNavigation")]
         public virtual ICollection<SupplyDetail> SupplyDetails { get; set; }
     }

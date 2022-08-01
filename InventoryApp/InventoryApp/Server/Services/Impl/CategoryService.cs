@@ -74,11 +74,13 @@ namespace InventoryApp.Server.Services.Impl
                 await _context.SaveChangesAsync();
 
                 response.Data = _mapper.Map<GetCategoryDto>(newCategory);
-            } catch (DbUpdateException e)
+            } 
+            catch (DbUpdateException e)
             {
+                // If enter here, it means that the category name is already taken by another category  
                 response.Success = false;
                 if (CategoryExists(category.Name))
-                    response.Message = "Category already exists";
+                    response.Message = "Category which name is " + category.Name + " already exists";
                 else
                     response.Message = "Error adding category: " + e.Message;
             }
@@ -115,10 +117,11 @@ namespace InventoryApp.Server.Services.Impl
                 {
                     // Update only a few properties of the category in database
                     // I dont want to update the DateCreated property
-                    // that's why I don't use: "_context.Entry(existingCategory).State = EntityState.Modified;"
+                    // that's why I don't use: "_context.Entry(entity).State = EntityState.Modified;"
                     _context.Categories.Attach(existingCategory);
                     existingCategory.Name = category.Name;
                     existingCategory.Description = category.Description;
+                    existingCategory.DateModified = DateTime.Now;
 
                     await _context.SaveChangesAsync();
                     response.Data = true;
@@ -128,7 +131,7 @@ namespace InventoryApp.Server.Services.Impl
                     // If enter here, it means that the category name is already taken by another category
                     response.Success = false;
                     if (CategoryExists(category.Name))
-                        response.Message = "Category already exists";
+                        response.Message = "Category which name is " + category.Name + " already exists";
                     else
                         response.Message = "Error updating category: " + e.Message;
                 }
@@ -185,6 +188,6 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="name">Category name</param>
         /// <returns>True if category exists, false otherwise</returns>
         private bool CategoryExists(string name)
-            => (_context.Categories?.Any(e => e.Name == name)).GetValueOrDefault();
+            => (_context.Categories?.Any(c => c.Name == name)).GetValueOrDefault();
     }
 }

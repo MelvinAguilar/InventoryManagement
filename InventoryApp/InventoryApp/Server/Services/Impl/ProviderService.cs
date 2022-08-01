@@ -67,11 +67,27 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>Added provider wrapped in a response</returns>
         public async Task<ServerResponse<GetProviderDto>> AddProvider(AddProviderDto provider)
         {
-            var newProvider = _mapper.Map<Provider>(provider);
-            _context.Providers.Add(newProvider);
-            await _context.SaveChangesAsync();
+            var response = new ServerResponse<GetProviderDto>();
+            // Try catch block to catch any errors that may occur while inserting into database
+            try
+            {
+                var newProvider = _mapper.Map<Provider>(provider);
+                _context.Providers.Add(newProvider);
+                await _context.SaveChangesAsync();
 
-            return new ServerResponse<GetProviderDto> { Data = _mapper.Map<GetProviderDto>(newProvider) };
+                response.Data = _mapper.Map<GetProviderDto>(newProvider);
+            }
+            catch (DbUpdateException ex)
+            {
+                // if enters here, it means that the provider already exists in database
+                response.Success = false;
+                if (ProviderExists(provider.Name, provider.PhoneNumber))
+                    response.Message = "Provider with name " + provider.Name + " or phone number " + provider.PhoneNumber + " already exists";
+                else
+                    response.Message = "Error occured while adding provider: " + ex.Message;;
+            }            
+
+            return response;
         }
 
         /// <summary>
@@ -86,26 +102,42 @@ namespace InventoryApp.Server.Services.Impl
             if (id != provider.Id)
             {
                 response.Success = false;
-                response.Message = "Providerid mismatch";
+                response.Message = "Provider id mismatch";
+                return response;
+            }
+
+            var existingProvider = await _context.Providers.FindAsync(id);
+            if (existingProvider == null)
+            {
+                response.Success = false;
+                response.Message = "Provider not found";
+                return response;
             }
             else
             {
                 try
                 {
-                    // TODO: Update only a part of the entity
-                    var updatedProvider = _mapper.Map<Provider>(provider);
-                    _context.Entry(updatedProvider).State = EntityState.Modified;
+                    // Update only a few properties of the provider in database
+                    // I dont want to update the DateCreated property
+                    // that's why I don't use: "_context.Entry(entity).State = EntityState.Modified;"
+                    _context.Providers.Attach(existingProvider);
+                    existingProvider.Name = provider.Name;
+                    existingProvider.Address = provider.Address;
+                    existingProvider.PhoneNumber = provider.PhoneNumber;
+                    existingProvider.Description = provider.Description;
+                    existingProvider.DateModified = DateTime.Now;
+                    
                     await _context.SaveChangesAsync();
-
                     response.Data = true;
                 }
-                catch (DbUpdateConcurrencyException e)
+                catch (DbUpdateException ex)
                 {
+                    // if enters here, it means that the provider already exists in database
                     response.Success = false;
-                    if (!ProviderExists(id))
-                        response.Message = "Provider not found";
+                    if (ProviderExists(provider.Name, provider.PhoneNumber))
+                        response.Message = "Provider with name " + provider.Name + " or phone number " + provider.PhoneNumber + " already exists";
                     else
-                        response.Message = "Error updating provider: " + e.Message;
+                        response.Message = "Error occured while updating provider: " + ex.Message;
                 }
             }
 
@@ -129,10 +161,19 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                _context.Providers.Remove(provider);
-                await _context.SaveChangesAsync();
-                
-                response.Data = true;
+                // Try catch block to catch any errors that may occur while deleting from database
+                try
+                {
+                    _context.Providers.Remove(provider);
+                    await _context.SaveChangesAsync();
+
+                    response.Success = true;
+                }
+                catch (DbUpdateException)
+                {
+                    response.Success = false;
+                    response.Message = "Error occured while deleting provider: This provider is being used by other entities";  
+                }
             }
 
             return response;
@@ -145,5 +186,14 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if provider exists, false otherwise</returns>
         private bool ProviderExists(int id) 
             => (_context.Providers?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        /// <summary>
+        /// Check if provider exists in database
+        /// </summary>
+        /// <param name="name">Provider name</param>
+        /// <param name="phoneNumber">Provider phone number</param>
+        /// <returns>True if provider exists, false otherwise</returns>
+        private bool ProviderExists(string name, string phoneNumber)
+            => (_context.Providers?.Any(e => e.Name == name || e.PhoneNumber == phoneNumber)).GetValueOrDefault();
     }
 }

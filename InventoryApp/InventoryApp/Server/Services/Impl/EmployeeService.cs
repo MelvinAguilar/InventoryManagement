@@ -2,6 +2,10 @@ using AutoMapper;
 using InventoryApp.Server.Dtos.EmployeeDtos;
 using Microsoft.EntityFrameworkCore;
 
+/*
+    TODO: Add authentication to this service
+*/
+
 namespace InventoryApp.Server.Services.Impl
 {
     public class EmployeeService : IEmployeeService
@@ -67,11 +71,27 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>Added employee wrapped in a response</returns>
         public async Task<ServerResponse<GetEmployeeDto>> AddEmployee(AddEmployeeDto employee)
         {
-            var newEmployee = _mapper.Map<Employee>(employee);
-            _context.Employees.Add(newEmployee);
-            await _context.SaveChangesAsync();
+            var response = new ServerResponse<GetEmployeeDto>();
+            // Try catch block to catch any errors that may occur while inserting into database
+            try
+            {
+                var newEmployee = _mapper.Map<Employee>(employee);
+                _context.Employees.Add(newEmployee);
+                await _context.SaveChangesAsync();
 
-            return new ServerResponse<GetEmployeeDto> { Data = _mapper.Map<GetEmployeeDto>(newEmployee) };
+                response.Data = _mapper.Map<GetEmployeeDto>(newEmployee);
+            }
+            catch (DbUpdateException ex)
+            {
+                // If enter here, it means that the email or phone number is already taken by another employee
+                response.Success = false;
+                if (EmployeeExists(employee.Email, employee.PhoneNumber))
+                    response.Message = "Employee wich email or phone number " + employee.Email + " or " + employee.PhoneNumber + " already exists";
+                else
+                    response.Message = "Error adding employee: " + ex.Message;
+            }
+
+            return response;
         }
 
         /// <summary>
@@ -87,28 +107,44 @@ namespace InventoryApp.Server.Services.Impl
             {
                 response.Success = false;
                 response.Message = "Employee id mismatch";
+                return response;
             }
-            else
+           
+            var existingEmployee = await _context.Employees.FindAsync(id);
+            if (existingEmployee == null)
+            {
+                response.Success = false;
+                response.Message = "Employee not found";
+            } 
+            else 
             {
                 try
                 {
-                    // TODO: Update only a part of the employee
-                    var updatedEmployee = _mapper.Map<Employee>(employee);
-                    _context.Entry(updatedEmployee).State = EntityState.Modified;
+                    // Update only a few properties of the category in database
+                    // I dont want to update the DateCreated property
+                    // that's why I don't use: "_context.Entry(existingCategory).State = EntityState.Modified;"
+                    _context.Employees.Attach(existingEmployee);
+                    existingEmployee.FirstName = employee.FirstName;
+                    existingEmployee.LastName = employee.LastName;
+                    existingEmployee.Email = employee.Email;
+                    existingEmployee.PhoneNumber = employee.PhoneNumber;
+                    existingEmployee.Avatar = employee.Avatar;
+                    //existingEmployee.Password = employee.Password; //Warning
+                    existingEmployee.DateModified = DateTime.Now;
+
                     await _context.SaveChangesAsync();
-                    
                     response.Data = true;
                 }
-                catch (DbUpdateConcurrencyException e)
+                catch (DbUpdateException ex)
                 {
+                    // If enter here, it means that the email or phone number is already taken by another employee
                     response.Success = false;
-                    
-                    if (!EmployeeExists(employee.Id))
-                        response.Message = "Employee not found";
+                    if (EmployeeExists(employee.Email, employee.PhoneNumber))
+                        response.Message = "Employee wich email " + employee.Email + " or phone number " + employee.PhoneNumber + " already exists";
                     else
-                        response.Message = "Error updating employee: " + e.Message;
+                        response.Message = "Error updating employee: " + ex.Message;
                 }
-            }
+            }           
 
             return response;
         }
@@ -130,10 +166,19 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                _context.Employees.Remove(employee);
-                await _context.SaveChangesAsync();
-                
-                response.Data = true;
+                // Try catch block for deleting employee with related entities
+                try
+                {
+                    _context.Employees.Remove(employee);
+                    await _context.SaveChangesAsync();
+
+                    response.Success = true;
+                }
+                catch (DbUpdateException)
+                {
+                    response.Success = false;
+                    response.Message = "Error deleting employee: Employee has related purchase orders or supply orders";
+                }
             }
 
             return response;
@@ -144,7 +189,16 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Employee Id</param>
         /// <returns>True if employee exists, false otherwise</returns>
-        public bool EmployeeExists(int id) 
-            => (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
+        private bool EmployeeExists(int id) 
+            => (_context.Employees?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        /// <summary>
+        /// Check if employee exists in database
+        /// </summary>
+        /// <param name="email">Employee email</param>
+        /// <param name="phoneNumber">Employee phone number</param>
+        /// <returns>True if employee exists, false otherwise</returns>
+        public bool EmployeeExists(string email, string phoneNumber) 
+            => (_context.Employees?.Any(e => e.Email == email || e.PhoneNumber == phoneNumber)).GetValueOrDefault();
     }
 }

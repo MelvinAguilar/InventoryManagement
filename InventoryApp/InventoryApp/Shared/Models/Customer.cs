@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
 {
     [Table("CUSTOMER")]
+    [Index("PhoneNumber", Name = "UQ__CUSTOMER__A1936A6B77803973", IsUnique = true)]
     public partial class Customer
     {
         public Customer()
@@ -34,6 +36,7 @@ namespace InventoryApp.Shared.Models
         [Column("date_modified", TypeName = "datetime")]
         public DateTime? DateModified { get; set; }
 
+        [JsonIgnore]
         [InverseProperty("IdCustomerNavigation")]
         public virtual ICollection<Purchase> Purchases { get; set; }
     }

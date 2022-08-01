@@ -22,7 +22,8 @@ namespace InventoryApp.Server.Services.Impl
         public async Task<ServerResponse<IEnumerable<GetProductDto>>> GetAllProducts()
         {
             var response = new ServerResponse<IEnumerable<GetProductDto>>();
-            var products = await _context.Products.ToListAsync();
+            // Get all products with his categories related to it
+            var products = await _context.Products.Include(p => p.IdCategoryNavigation).ToListAsync();
 
             if (products == null)
             {
@@ -45,7 +46,9 @@ namespace InventoryApp.Server.Services.Impl
         public async Task<ServerResponse<GetProductDto>> GetProductById(int id)
         {
             var response = new ServerResponse<GetProductDto>();
-            var product = await _context.Products.FindAsync(id);
+            // Get product with his categories related to it
+            var product = await _context.Products.Include(p => p.IdCategoryNavigation)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
             {
@@ -88,26 +91,31 @@ namespace InventoryApp.Server.Services.Impl
             {
                 response.Success = false;
                 response.Message = "Product id mismatch";
+                return response;
             }
-            else
+            
+            var existingProduct = await _context.Products.FindAsync(id);
+            if (existingProduct == null) 
             {
-                try 
-                {
-                    // TODO: Update only a part of the entity
-                    var updatedProduct = _mapper.Map<Product>(product);
-                    _context.Products.Update(updatedProduct);
-                    await _context.SaveChangesAsync();
-                    
-                    response.Data = true;
-                }
-                catch (DbUpdateConcurrencyException e)
-                {
-                    response.Success = false;
-                    if (!ProductExists(product.Id))
-                        response.Message = "Product not found";
-                    else
-                        response.Message = "Error updating product: " + e.Message;
-                }
+                response.Success = false;
+                response.Message = "Product not found";
+            } else {
+                // Update only a few properties of the product in database
+                // I dont want to update the DateCreated property
+                // that's why I don't use: "_context.Entry(product).State = EntityState.Modified;"
+                _context.Products.Attach(existingProduct);
+                existingProduct.Name = product.Name;
+                existingProduct.Specification = product.Specification;
+                existingProduct.Brand = product.Brand;
+                existingProduct.Stock = product.Stock;
+                existingProduct.Price = product.Price;
+                existingProduct.Image = product.Image;
+                existingProduct.IdCategory = product.IdCategory;
+                existingProduct.DateModified = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                response.Data = true;
             }
 
             return response;
@@ -130,10 +138,19 @@ namespace InventoryApp.Server.Services.Impl
             }
             else
             {
-                _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
-                
-                response.Data = true;
+                // Try catch block for deleting customer products with related orders
+                try 
+                {
+                    _context.Products.Remove(product);
+                    await _context.SaveChangesAsync();
+
+                    response.Data = true;
+                }
+                catch (DbUpdateException)
+                {
+                    response.Success = false;
+                    response.Message = "Error deleting product: Product has related orders";
+                }
             }
 
             return response;
@@ -145,6 +162,6 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Product id</param>
         /// <returns>True if product exists, false otherwise</returns>
         public bool ProductExists(int id)
-            => (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
+            => (_context.Products?.Any(p => p.Id == id)).GetValueOrDefault();
     }
 }

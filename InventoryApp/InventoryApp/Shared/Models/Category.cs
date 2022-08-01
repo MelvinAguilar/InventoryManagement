@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
 {
     [Table("CATEGORY")]
-    [Index("Name", Name = "UQ__CATEGORY__72E12F1B1D5460EE", IsUnique = true)]
+    [Index("Name", Name = "UQ__CATEGORY__72E12F1B6FAA9EF0", IsUnique = true)]
     public partial class Category
     {
         public Category()
@@ -26,7 +27,10 @@ namespace InventoryApp.Shared.Models
         public string Description { get; set; } = null!;
         [Column("date_created", TypeName = "datetime")]
         public DateTime DateCreated { get; set; }
+        [Column("date_modified", TypeName = "datetime")]
+        public DateTime? DateModified { get; set; }
 
+        [JsonIgnore]
         [InverseProperty("IdCategoryNavigation")]
         public virtual ICollection<Product> Products { get; set; }
     }

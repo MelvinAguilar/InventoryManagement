@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using InventoryApp.Server.Dtos.CategoryDtos;
 
 namespace InventoryApp.Server.Dtos.ProductDtos
 {
@@ -27,6 +28,6 @@ namespace InventoryApp.Server.Dtos.ProductDtos
 
         [ForeignKey("IdCategory")]
         [InverseProperty("Products")]
-        public virtual Category IdCategoryNavigation { get; set; } = null!;
+        public virtual GetCategoryDto IdCategoryNavigation { get; set; } = null!;
     }
 }

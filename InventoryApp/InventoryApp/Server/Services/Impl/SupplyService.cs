@@ -2,6 +2,12 @@ using AutoMapper;
 using InventoryApp.Server.Dtos.SupplyDtos;
 using Microsoft.EntityFrameworkCore;
 
+/*
+    TODO: Add the following:
+    1. Add supply details
+    2. Update supply details
+*/
+
 namespace InventoryApp.Server.Services.Impl
 {
     public class SupplyService : ISupplyService
@@ -22,8 +28,12 @@ namespace InventoryApp.Server.Services.Impl
         public async Task<ServerResponse<IEnumerable<GetSupplyDto>>> GetAllSupplies()
         {
             var response = new ServerResponse<IEnumerable<GetSupplyDto>>();
-            var supplies = await _context.Supplies.ToListAsync();
-
+            // Get all supplies with related entities
+            var supplies = await _context.Supplies
+                .Include(s => s.IdEmployeeNavigation)
+                .Include(s => s.IdProviderNavigation)
+                .ToListAsync();
+            
             if (supplies == null)
             {
                 response.Success = false;
@@ -45,7 +55,13 @@ namespace InventoryApp.Server.Services.Impl
         public async Task<ServerResponse<GetSupplyDto>> GetSupplyById(int id)
         {
             var response = new ServerResponse<GetSupplyDto>();
-            var supply = await _context.Supplies.FindAsync(id);
+            // Get supply with related entities
+            var supply = await _context.Supplies
+                .Include(s => s.IdEmployeeNavigation)
+                .Include(s => s.IdProviderNavigation)
+                .Include(s => s.SupplyDetails)
+                .ThenInclude(sd => sd.IdProductNavigation)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (supply == null)
             {

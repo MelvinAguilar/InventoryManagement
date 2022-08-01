@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
 {
     [Table("PROVIDER")]
-    [Index("Name", Name = "UQ__PROVIDER__72E12F1B68C6DA95", IsUnique = true)]
+    [Index("Name", Name = "UQ__PROVIDER__72E12F1BD37C6E62", IsUnique = true)]
+    [Index("PhoneNumber", Name = "UQ__PROVIDER__A1936A6B12B5D698", IsUnique = true)]
     public partial class Provider
     {
         public Provider()
@@ -37,6 +39,7 @@ namespace InventoryApp.Shared.Models
         [Column("date_modified", TypeName = "datetime")]
         public DateTime? DateModified { get; set; }
 
+        [JsonIgnore]
         [InverseProperty("IdProviderNavigation")]
         public virtual ICollection<Supply> Supplies { get; set; }
     }

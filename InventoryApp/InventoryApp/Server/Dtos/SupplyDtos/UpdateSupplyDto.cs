@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using InventoryApp.Server.Dtos.SupplyDetailDtos;
 
 namespace InventoryApp.Server.Dtos.SupplyDtos
 {
@@ -8,6 +9,11 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
     /// </summary>
     public partial class UpdateSupplyDto
     {
+        public UpdateSupplyDto()
+        {
+            SupplyDetails = new HashSet<GetSupplyDetailDto>();
+        }
+
         [Key]
         [Column("id")]
         public int Id { get; set; }
@@ -17,5 +23,8 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
         public decimal Payment { get; set; }
         [Column("id_employee")]
         public int IdEmployee { get; set; }
+
+        [InverseProperty("IdSupplyNavigation")]
+        public virtual ICollection<GetSupplyDetailDto> SupplyDetails { get; set; }
     }
 }
