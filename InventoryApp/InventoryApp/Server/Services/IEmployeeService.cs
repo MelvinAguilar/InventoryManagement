@@ -6,7 +6,6 @@ namespace InventoryApp.Server.Services
     {
         Task<ServerResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees();
         Task<ServerResponse<GetEmployeeDto>> GetEmployeeById(int id);
-        Task<ServerResponse<GetEmployeeDto>> AddEmployee(AddEmployeeDto employee);
         Task<ServerResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee);
         Task<ServerResponse<bool>> DeleteEmployee(int id);
     }

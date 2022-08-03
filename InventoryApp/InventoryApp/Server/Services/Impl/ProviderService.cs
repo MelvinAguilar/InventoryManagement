@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using InventoryApp.Server.Dtos.ProviderDtos;
 using Microsoft.EntityFrameworkCore;
@@ -6,13 +7,16 @@ namespace InventoryApp.Server.Services.Impl
 {
     public class ProviderService : IProviderService
     {
-        public readonly inventory_managementContext _context;
-        public readonly IMapper _mapper;
+        private readonly inventory_managementContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProviderService(inventory_managementContext context, IMapper mapper)
+        public ProviderService(inventory_managementContext context, IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -195,5 +199,18 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if provider exists, false otherwise</returns>
         private bool ProviderExists(string name, string phoneNumber)
             => (_context.Providers?.Any(e => e.Name == name || e.PhoneNumber == phoneNumber)).GetValueOrDefault();
+
+        /// <summary>
+        /// Get the ID of the authenticated employee
+        /// </summary>
+        /// <returns>Employee ID</returns>
+        /* This method may be used in the future to auditory the employee who submits request
+           to change a provider*/
+        private int GetAuthenticatedEmployeeId()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
     }
 }

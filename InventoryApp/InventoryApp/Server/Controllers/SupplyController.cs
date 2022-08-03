@@ -1,13 +1,15 @@
 using InventoryApp.Server.Dtos.SupplyDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController] 
     public class SupplyController : ControllerBase
     {
-        public readonly ISupplyService _supplyService;
+        private readonly ISupplyService _supplyService;
 
         public SupplyController(ISupplyService supplyService)
         {
@@ -32,6 +34,7 @@ namespace InventoryApp.Server.Controllers
             return HandleResponse(await _supplyService.AddSupply(supply));
         }
 
+        [Authorize (Roles = "Administrator")]
         [HttpPut("{id}")]
         public async Task<ActionResult<ServerResponse<bool>>> PutSupply(int id, UpdateSupplyDto supply)
         {

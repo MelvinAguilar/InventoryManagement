@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace InventoryApp.Shared.Models
 {
     [Table("EMPLOYEE")]
-    [Index("PhoneNumber", Name = "UQ__EMPLOYEE__A1936A6BC2BF7699", IsUnique = true)]
-    [Index("Email", Name = "UQ__EMPLOYEE__AB6E6164BF45D54E", IsUnique = true)]
+    [Index("PhoneNumber", Name = "UQ__EMPLOYEE__A1936A6B9F344C76", IsUnique = true)]
+    [Index("Email", Name = "UQ__EMPLOYEE__AB6E61640240A062", IsUnique = true)]
     public partial class Employee
     {
         public Employee()
@@ -40,13 +40,9 @@ namespace InventoryApp.Shared.Models
         [Column("avatar")]
         public byte[]? Avatar { get; set; }
         [Column("passwordHash")]
-        [StringLength(256)]
-        [Unicode(false)]
-        public string PasswordHash { get; set; } = null!;
+        public byte[] PasswordHash { get; set; } = null!;
         [Column("passwordSalt")]
-        [StringLength(256)]
-        [Unicode(false)]
-        public string PasswordSalt { get; set; } = null!;
+        public byte[] PasswordSalt { get; set; } = null!;
         [Column("verificationToken")]
         [StringLength(256)]
         [Unicode(false)]
@@ -63,17 +59,15 @@ namespace InventoryApp.Shared.Models
         public DateTime DateCreated { get; set; }
         [Column("date_modified", TypeName = "datetime")]
         public DateTime? DateModified { get; set; }
-        [Column("id_rol")]
-        public int IdRol { get; set; }
+        [Column("id_role")]
+        public int IdRole { get; set; }
 
-        [ForeignKey("IdRol")]
+        [ForeignKey("IdRole")]
         [InverseProperty("Employees")]
-        public virtual Rol IdRolNavigation { get; set; } = null!;
-
+        public virtual Role IdRoleNavigation { get; set; } = null!;
         [JsonIgnore]
         [InverseProperty("IdEmployeeNavigation")]
         public virtual ICollection<Purchase> Purchases { get; set; }
-
         [JsonIgnore]
         [InverseProperty("IdEmployeeNavigation")]
         public virtual ICollection<Supply> Supplies { get; set; }

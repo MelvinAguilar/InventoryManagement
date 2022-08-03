@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-/*
-    TODO: Implement the JWT token for the employee.
-*/
 namespace InventoryApp.Server.Dtos.EmployeeDtos
 {
     /// <summary>
@@ -30,11 +27,12 @@ namespace InventoryApp.Server.Dtos.EmployeeDtos
         public string PhoneNumber { get; set; } = null!;
         [Column("avatar")]
         public byte[]? Avatar { get; set; }
+        [NotMapped]
         [Column("password")]
         [StringLength(256)]
         [Unicode(false)]
         public string Password { get; set; } = null!;  
-        [Column("id_rol")]
-        public int IdRol { get; set; }
+        [Column("id_role")]
+        public int IdRole { get; set; }
     }
 }

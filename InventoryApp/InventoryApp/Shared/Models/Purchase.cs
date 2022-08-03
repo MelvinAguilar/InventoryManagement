@@ -43,7 +43,6 @@ namespace InventoryApp.Shared.Models
         [ForeignKey("IdEmployee")]
         [InverseProperty("Purchases")]
         public virtual Employee IdEmployeeNavigation { get; set; } = null!;
-
         [JsonIgnore]
         [InverseProperty("IdPurchaseNavigation")]
         public virtual ICollection<PurchaseDetail> PurchaseDetails { get; set; }

@@ -47,11 +47,9 @@ namespace InventoryApp.Shared.Models
         [ForeignKey("IdCategory")]
         [InverseProperty("Products")]
         public virtual Category IdCategoryNavigation { get; set; } = null!;
-
         [JsonIgnore]
         [InverseProperty("IdProductNavigation")]
         public virtual ICollection<PurchaseDetail> PurchaseDetails { get; set; }
-
         [JsonIgnore]
         [InverseProperty("IdProductNavigation")]
         public virtual ICollection<SupplyDetail> SupplyDetails { get; set; }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using InventoryApp.Server.Dtos.PurchaseDtos;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +13,16 @@ namespace InventoryApp.Server.Services.Impl
 {
     public class PurchaseService : IPurchaseService
     {
-        public readonly inventory_managementContext _context;
-        public readonly IMapper _mapper;
+        private readonly inventory_managementContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PurchaseService(inventory_managementContext context, IMapper mapper)
+        public PurchaseService(inventory_managementContext context, IMapper mapper, 
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -136,5 +140,18 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if purchase exists, false otherwise</returns>
         private bool PurchaseExists(int id) 
             => (_context.Purchases?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        /// <summary>
+        /// Get the ID of the authenticated employee
+        /// </summary>
+        /// <returns>Employee ID</returns>
+        /* This method may be used in the future to auditory the employee who submits request
+           to change a purchase*/
+        private int GetAuthenticatedEmployeeId()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
     }
 }

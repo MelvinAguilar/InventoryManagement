@@ -23,7 +23,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-About The Project
+   [...]
+
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 ## Built With
@@ -31,7 +33,9 @@ About The Project
 This section contains a list of the technology used in this project.
 
 ### Front-End
- [...]
+* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
+* [![Blazor][Blazor.com]][Blazor-url]
+* [![HTML][HTML.com]][HTML-url]
 
 ### Back-End
 * [![WebApi][WebApi.com]][WebApi-url]
@@ -46,6 +50,20 @@ This section contains a list of the technology used in this project.
 * [![SqlServer][SqlServer.com]][SqlServer-url]
 * [![AzureStudio][AzureStudio.com]][AzureStudio-url]
 
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
+
+<!-- ROADMAP -->
+## Roadmap
+
+- [x] Add JSON Web Tokens (JWT) implementation
+- [ ] Add business logic for entity details
+    - [ ] Purchase Service
+    - [ ] Supply Service
+
+See the [open issues](https://github.com/MelvinAguilar/InventoryManagement/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -77,7 +95,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 [CSS.com]: https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white
 [CSS-url]: https://www.w3schools.com/css/
 [C#.com]: https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=c-sharp&logoColor=white
-[C#-url]: https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor
+[C#-url]: https://docs.microsoft.com/en-us/dotnet/csharp/
 [SqlServer.com]: https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white
 [SqlServer-url]: https://www.microsoft.com/en-us/sql-server/sql-server-downloads
 [Postman.com]: https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white

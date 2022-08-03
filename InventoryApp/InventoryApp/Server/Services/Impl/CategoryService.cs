@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using InventoryApp.Server.Dtos.CategoryDtos;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,14 @@ namespace InventoryApp.Server.Services.Impl
     {
         private readonly inventory_managementContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CategoryService(inventory_managementContext context, IMapper mapper)
+        public CategoryService(inventory_managementContext context, IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -189,5 +193,18 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if category exists, false otherwise</returns>
         private bool CategoryExists(string name)
             => (_context.Categories?.Any(c => c.Name == name)).GetValueOrDefault();
+
+        /// <summary>
+        /// Get the ID of the authenticated employee
+        /// </summary>
+        /// <returns>Employee ID</returns>
+        /* This method may be used in the future to auditory the employee who submits request
+           to change a category*/
+        private int GetAuthenticatedEmployeeId()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using InventoryApp.Server.Dtos.SupplyDtos;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +13,16 @@ namespace InventoryApp.Server.Services.Impl
 {
     public class SupplyService : ISupplyService
     {
-        public readonly inventory_managementContext _context;
-        public readonly IMapper _mapper;
+        private readonly inventory_managementContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public SupplyService(inventory_managementContext context, IMapper mapper)
+        public SupplyService(inventory_managementContext context, IMapper mapper, 
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -134,5 +138,18 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if supply exists, false otherwise</returns>
         private bool SupplyExists(int id) 
             => (_context.Supplies?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        /// <summary>
+        /// Get the ID of the authenticated employee
+        /// </summary>
+        /// <returns>Employee ID</returns>
+        /* This method may be used in the future to auditory the employee who submits request
+           to change a provider*/
+        private int GetAuthenticatedEmployeeId()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }    
     }
 }

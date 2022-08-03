@@ -1,13 +1,15 @@
 using InventoryApp.Server.Dtos.ProductDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
-        public readonly IProductService _productService;
+        private readonly IProductService _productService;
 
         public ProductController(IProductService productService)
         {

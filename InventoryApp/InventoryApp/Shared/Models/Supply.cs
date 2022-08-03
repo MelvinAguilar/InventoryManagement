@@ -37,7 +37,6 @@ namespace InventoryApp.Shared.Models
         [ForeignKey("IdProvider")]
         [InverseProperty("Supplies")]
         public virtual Provider IdProviderNavigation { get; set; } = null!;
-
         [JsonIgnore]
         [InverseProperty("IdSupplyNavigation")]
         public virtual ICollection<SupplyDetail> SupplyDetails { get; set; }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using InventoryApp.Server.Dtos.CustomerDtos;
 using Microsoft.EntityFrameworkCore;
@@ -6,13 +7,16 @@ namespace InventoryApp.Server.Services.Impl
 {
     public class CustomerService : ICustomerService
     {
-        public readonly inventory_managementContext _context;
-        public readonly IMapper _mapper;
+        private readonly inventory_managementContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CustomerService(inventory_managementContext context, IMapper mapper)
+        public CustomerService(inventory_managementContext context, IMapper mapper, 
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -81,8 +85,8 @@ namespace InventoryApp.Server.Services.Impl
             {
                 // If enter here, it means that the phone number already exists in the database
                 response.Success = false;
-                if (CustomerExists(customer.PhoneNumber))
-                    response.Message = "Customer with phone number " + customer.PhoneNumber + " already exists";
+                if (CustomerExists(customer.FirstName, customer.PhoneNumber))
+                    response.Message = "Customer with the same name and phone number already exists";
                 else
                     response.Message = "Error adding category: " + e.Message;
             }
@@ -102,7 +106,7 @@ namespace InventoryApp.Server.Services.Impl
             if (id != customer.Id)
             {
                 response.Success = false;
-                response.Message = "Category id mismatch";
+                response.Message = "Customer id mismatch";
                 return response;
             }
 
@@ -132,10 +136,10 @@ namespace InventoryApp.Server.Services.Impl
                 {
                     // If enter here, it means that the phone number is already in use
                     response.Success = false;
-                    if (CustomerExists(customer.PhoneNumber))
-                        response.Message = "Customer with phone number " + customer.PhoneNumber + " already exists";
+                    if (CustomerExists(customer.FirstName, customer.PhoneNumber))
+                        response.Message = "Customer with the same name and phone number already exists";
                     else
-                        response.Message = "Error adding category: " + e.Message;
+                        response.Message = "Error adding customer: " + e.Message;
                 }               
             }
 
@@ -187,9 +191,23 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Check if customer exists in database
         /// </summary>
+        /// <param name="name">Customer name to check</param>
         /// <param name="phoneNumber">Customer phone number to check</param>
         /// <returns>True if customer exists, false otherwise</returns>
-        private bool CustomerExists(string phoneNumber) 
-            => (_context.Customers?.Any(c => c.PhoneNumber == phoneNumber)).GetValueOrDefault();
+        private bool CustomerExists(string name, string phoneNumber) 
+            => (_context.Customers?.Any(c => c.FirstName == name && c.PhoneNumber == phoneNumber)).GetValueOrDefault();
+
+        /// <summary>
+        /// Get the ID of the authenticated employee
+        /// </summary>
+        /// <returns>Employee ID</returns>
+        /* This method may be used in the future to auditory the employee who submits request
+           to change a customer*/
+        private int GetAuthenticatedEmployeeId()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
     }
 }

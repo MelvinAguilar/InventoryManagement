@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace InventoryApp.Shared.Models
 {
     [Table("CATEGORY")]
-    [Index("Name", Name = "UQ__CATEGORY__72E12F1B6FAA9EF0", IsUnique = true)]
+    [Index("Name", Name = "UQ__CATEGORY__72E12F1B2B55EE1F", IsUnique = true)]
     public partial class Category
     {
         public Category()

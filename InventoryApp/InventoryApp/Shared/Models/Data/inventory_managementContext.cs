@@ -23,7 +23,7 @@ namespace InventoryApp.Shared.Models.Data
         public virtual DbSet<Provider> Providers { get; set; } = null!;
         public virtual DbSet<Purchase> Purchases { get; set; } = null!;
         public virtual DbSet<PurchaseDetail> PurchaseDetails { get; set; } = null!;
-        public virtual DbSet<Rol> Rols { get; set; } = null!;
+        public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Supply> Supplies { get; set; } = null!;
         public virtual DbSet<SupplyDetail> SupplyDetails { get; set; } = null!;
 
@@ -51,11 +51,11 @@ namespace InventoryApp.Shared.Models.Data
             {
                 entity.Property(e => e.DateCreated).HasDefaultValueSql("(getdate())");
 
-                entity.HasOne(d => d.IdRolNavigation)
+                entity.HasOne(d => d.IdRoleNavigation)
                     .WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.IdRol)
+                    .HasForeignKey(d => d.IdRole)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_rol_employee");
+                    .HasConstraintName("fk_role_employee");
             });
 
             modelBuilder.Entity<Product>(entity =>

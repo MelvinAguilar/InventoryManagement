@@ -1,22 +1,22 @@
+using System.Security.Claims;
 using AutoMapper;
 using InventoryApp.Server.Dtos.EmployeeDtos;
 using Microsoft.EntityFrameworkCore;
-
-/*
-    TODO: Add authentication to this service
-*/
 
 namespace InventoryApp.Server.Services.Impl
 {
     public class EmployeeService : IEmployeeService
     {
-        public readonly inventory_managementContext _context;
-        public readonly IMapper _mapper;
+        private readonly inventory_managementContext _context;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EmployeeService(inventory_managementContext context, IMapper mapper)
+        public EmployeeService(inventory_managementContext context, IMapper mapper, 
+            IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -65,41 +65,13 @@ namespace InventoryApp.Server.Services.Impl
         }
 
         /// <summary>
-        /// Add new employee into database
-        /// </summary>
-        /// <param name="employee">Employee to add</param>
-        /// <returns>Added employee wrapped in a response</returns>
-        public async Task<ServerResponse<GetEmployeeDto>> AddEmployee(AddEmployeeDto employee)
-        {
-            var response = new ServerResponse<GetEmployeeDto>();
-            // Try catch block to catch any errors that may occur while inserting into database
-            try
-            {
-                var newEmployee = _mapper.Map<Employee>(employee);
-                _context.Employees.Add(newEmployee);
-                await _context.SaveChangesAsync();
-
-                response.Data = _mapper.Map<GetEmployeeDto>(newEmployee);
-            }
-            catch (DbUpdateException ex)
-            {
-                // If enter here, it means that the email or phone number is already taken by another employee
-                response.Success = false;
-                if (EmployeeExists(employee.Email, employee.PhoneNumber))
-                    response.Message = "Employee wich email or phone number " + employee.Email + " or " + employee.PhoneNumber + " already exists";
-                else
-                    response.Message = "Error adding employee: " + ex.Message;
-            }
-
-            return response;
-        }
-
-        /// <summary>
         /// Update employee in database
         /// </summary>
         /// <param name="id">Employee Id</param>
         /// <param name="employee">Employee to update</param>
         /// <returns>Success or error message in server response</returns>
+        /// <remarks>This method not update password</remarks>
+        /// <remarks>This will only update the employee if the user is the same as the one who created the employee</remarks>
         public async Task<ServerResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee)
         {
             var response = new ServerResponse<bool>();
@@ -120,16 +92,15 @@ namespace InventoryApp.Server.Services.Impl
             {
                 try
                 {
-                    // Update only a few properties of the category in database
-                    // I dont want to update the DateCreated property
-                    // that's why I don't use: "_context.Entry(existingCategory).State = EntityState.Modified;"
+                    // Update only a few properties of the employee in database
+                    // I dont want to update the DateCreated and password property
+                    // that's why I don't use: "_context.Entry(entity).State = EntityState.Modified;"
                     _context.Employees.Attach(existingEmployee);
                     existingEmployee.FirstName = employee.FirstName;
                     existingEmployee.LastName = employee.LastName;
                     existingEmployee.Email = employee.Email;
                     existingEmployee.PhoneNumber = employee.PhoneNumber;
                     existingEmployee.Avatar = employee.Avatar;
-                    //existingEmployee.Password = employee.Password; //Warning
                     existingEmployee.DateModified = DateTime.Now;
 
                     await _context.SaveChangesAsync();
@@ -140,7 +111,8 @@ namespace InventoryApp.Server.Services.Impl
                     // If enter here, it means that the email or phone number is already taken by another employee
                     response.Success = false;
                     if (EmployeeExists(employee.Email, employee.PhoneNumber))
-                        response.Message = "Employee wich email " + employee.Email + " or phone number " + employee.PhoneNumber + " already exists";
+                        response.Message = "Employee wich email " + employee.Email + " or phone number "
+                            + employee.PhoneNumber + " already exists";
                     else
                         response.Message = "Error updating employee: " + ex.Message;
                 }
@@ -154,6 +126,7 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Employee Id</param>
         /// <returns>Success or error message in server response</returns>
+        /// <remarks>The admin cant delete himself or another admins</remarks>
         public async Task<ServerResponse<bool>> DeleteEmployee(int id)
         {
             var response = new ServerResponse<bool>();
@@ -164,8 +137,16 @@ namespace InventoryApp.Server.Services.Impl
                 response.Success = false;
                 response.Message = "Employee not found";
             }
-            else
+            else if (employee.Id == GetAuthenticatedEmployeeId())
             {
+                response.Success = false;
+                response.Message = "You can't delete yourself";
+            }
+            else if (employee.IdRoleNavigation.Name.Equals("Admin"))
+            {
+                response.Success = false;
+                response.Message = "You can't delete an admin";
+            } else {
                 // Try catch block for deleting employee with related entities
                 try
                 {
@@ -200,5 +181,29 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>True if employee exists, false otherwise</returns>
         public bool EmployeeExists(string email, string phoneNumber) 
             => (_context.Employees?.Any(e => e.Email == email || e.PhoneNumber == phoneNumber)).GetValueOrDefault();
+
+        /// <summary>
+        /// Get the ID of the authenticated employee
+        /// </summary>
+        /// <returns>Employee ID</returns>
+        /* This method may be used in the future to auditory the administrator employee who submits request
+           to change a normal employee */
+        private int GetAuthenticatedEmployeeId()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        /// <summary>
+        /// Get the role of the authenticated employee
+        /// </summary>
+        /// <returns>Employee role</returns>
+        private string GetAuthenticatedEmployeeRole()
+        {
+            if (_httpContextAccessor.HttpContext == null)
+                throw new Exception("No HTTP context found");
+            return _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+        }
     }
 }

@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Shared.Models
 {
-    [Table("ROL")]
-    [Index("Rol1", Name = "UQ__ROL__C2B79D26BB8B0CC2", IsUnique = true)]
-    public partial class Rol
+    [Table("ROLE")]
+    [Index("Name", Name = "UQ__ROLE__863D2148545EBBC3", IsUnique = true)]
+    public partial class Role
     {
-        public Rol()
+        public Role()
         {
             Employees = new HashSet<Employee>();
         }
@@ -19,13 +19,13 @@ namespace InventoryApp.Shared.Models
         [Key]
         [Column("id")]
         public int Id { get; set; }
-        [Column("rol")]
+        [Column("name")]
         [StringLength(30)]
         [Unicode(false)]
-        public string Rol1 { get; set; } = null!;
+        public string Name { get; set; } = null!;
 
         [JsonIgnore]
-        [InverseProperty("IdRolNavigation")]
+        [InverseProperty("IdRoleNavigation")]
         public virtual ICollection<Employee> Employees { get; set; }
     }
 }

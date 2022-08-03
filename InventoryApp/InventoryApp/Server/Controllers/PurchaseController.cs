@@ -1,13 +1,15 @@
 using InventoryApp.Server.Dtos.PurchaseDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController] 
     public class PurchaseController : ControllerBase
     {
-        public readonly IPurchaseService _purchaseService;
+        private readonly IPurchaseService _purchaseService;
 
         public PurchaseController(IPurchaseService purchaseService)
         {
@@ -32,6 +34,7 @@ namespace InventoryApp.Server.Controllers
             return HandleResponse(await _purchaseService.AddPurchase(purchase));
         }
 
+        [Authorize (Roles = "Administrator")]
         [HttpPut("{id}")]
         public async Task<ActionResult<ServerResponse<bool>>> PutPurchase(int id, UpdatePurchaseDto purchase)
         {

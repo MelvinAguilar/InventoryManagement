@@ -1,13 +1,15 @@
 using InventoryApp.Server.Dtos.ProviderDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InventoryApp.Server.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]    
     public class ProviderController : ControllerBase
     {
-        public readonly IProviderService _providerService;
+        private readonly IProviderService _providerService;
 
         public ProviderController(IProviderService providerService)
         {
