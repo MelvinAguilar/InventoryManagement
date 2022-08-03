@@ -22,10 +22,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all products
         /// </summary>
-        /// <returns>List of products wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetProductDto>>> GetAllProducts()
+        /// <returns>List of products wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetProductDto>>> GetAllProducts()
         {
-            var response = new ServerResponse<IEnumerable<GetProductDto>>();
+            var response = new ServiceResponse<IEnumerable<GetProductDto>>();
             // Get all products with his categories related to it
             var products = await _context.Products.Include(p => p.IdCategoryNavigation).ToListAsync();
 
@@ -46,10 +46,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get product by id
         /// </summary>
         /// <param name="id">Product id</param>
-        /// <returns>Product wrapped in a response</returns>
-        public async Task<ServerResponse<GetProductDto>> GetProductById(int id)
+        /// <returns>Product wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetProductDto>> GetProductById(int id)
         {
-            var response = new ServerResponse<GetProductDto>();
+            var response = new ServiceResponse<GetProductDto>();
             // Get product with his categories related to it
             var product = await _context.Products.Include(p => p.IdCategoryNavigation)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -71,14 +71,14 @@ namespace InventoryApp.Server.Services.Impl
         /// Add new product into database
         /// </summary>
         /// <param name="product">Product to add</param>
-        /// <returns>Added product wrapped in a response</returns>
-        public async Task<ServerResponse<GetProductDto>> AddProduct(AddProductDto product)
+        /// <returns>Added product wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetProductDto>> AddProduct(AddProductDto product)
         {
             var newProduct = _mapper.Map<Product>(product);
             _context.Products.Add(newProduct);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<GetProductDto> { Data = _mapper.Map<GetProductDto>(newProduct) };
+            return new ServiceResponse<GetProductDto> { Data = _mapper.Map<GetProductDto>(newProduct) };
         }
 
         /// <summary>
@@ -86,10 +86,10 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Product id</param>
         /// <param name="product">Product to update</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateProduct(int id, UpdateProductDto product)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> UpdateProduct(int id, UpdateProductDto product)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             
             if (id != product.Id)
             {
@@ -129,10 +129,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Delete product from database
         /// </summary>
         /// <param name="id">Product id</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> DeleteProduct(int id)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> DeleteProduct(int id)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var product = await _context.Products.FindAsync(id);
 
             if (product == null)

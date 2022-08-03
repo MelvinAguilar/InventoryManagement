@@ -4,9 +4,9 @@ namespace InventoryApp.Server.Services
 {
     public interface IEmployeeService
     {
-        Task<ServerResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees();
-        Task<ServerResponse<GetEmployeeDto>> GetEmployeeById(int id);
-        Task<ServerResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee);
-        Task<ServerResponse<bool>> DeleteEmployee(int id);
+        Task<ServiceResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees();
+        Task<ServiceResponse<GetEmployeeDto>> GetEmployeeById(int id);
+        Task<ServiceResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee);
+        Task<ServiceResponse<bool>> DeleteEmployee(int id);
     }
 }

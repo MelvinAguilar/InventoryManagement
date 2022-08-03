@@ -27,9 +27,9 @@ namespace InventoryApp.Server.Repository.impl
         /// <param name="email">Email</param>
         /// <param name="password">Password</param>
         /// <returns>Token wrapped in a response</returns>
-        public async Task<ServerResponse<string>> Login(string email, string password)
+        public async Task<ServiceResponse<string>> Login(string email, string password)
         {
-            var response = new ServerResponse<string>();
+            var response = new ServiceResponse<string>();
             var employee = await _context.Employees
                 .Include(e => e.IdRoleNavigation)
                 .FirstOrDefaultAsync(e => e.Email.ToLower() == email.ToLower());
@@ -59,9 +59,9 @@ namespace InventoryApp.Server.Repository.impl
         /// <param name="employeeRequest">Employee object</param>
         /// <param name="password">Password</param>
         /// <returns>Employee id wrapped in a response</returns>
-        public async Task<ServerResponse<int>> Register(AddEmployeeDto employeeRequest, string password)
+        public async Task<ServiceResponse<int>> Register(AddEmployeeDto employeeRequest, string password)
         {
-            var response = new ServerResponse<int>();
+            var response = new ServiceResponse<int>();
             if (await EmployeeExists(employeeRequest.Email, employeeRequest.PhoneNumber))
             {
                 response.Success = false;
@@ -86,9 +86,9 @@ namespace InventoryApp.Server.Repository.impl
         /// </summary>
         /// <param name="email">Email</param>
         /// <returns>True if email was sent, false otherwise</returns>
-        public async Task<ServerResponse<bool>> ForgotPassword(string email)
+        public async Task<ServiceResponse<bool>> ForgotPassword(string email)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email.ToLower() == email.ToLower());
 
             if (employee == null)
@@ -115,9 +115,9 @@ namespace InventoryApp.Server.Repository.impl
         /// </summary>
         /// <param name="request">Reset password request object</param>
         /// <returns>True if password was reset, false otherwise</returns>
-        public async Task<ServerResponse<bool>> ResetPassword(ResetPasswordRequest request)
+        public async Task<ServiceResponse<bool>> ResetPassword(ResetPasswordRequest request)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.PasswordResetToken == request.Token);
             if (employee == null || employee.ResetTokenExpires < DateTime.Now)
             {
@@ -146,9 +146,9 @@ namespace InventoryApp.Server.Repository.impl
         /// <param name="oldPassword">Old password</param>
         /// <param name="newPassword">New password</param>
         /// <returns>True if password was changed, false otherwise</returns>
-        public async Task<ServerResponse<bool>> ChangePassword(int employeeId, string oldPassword, string newPassword)
+        public async Task<ServiceResponse<bool>> ChangePassword(int employeeId, string oldPassword, string newPassword)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
 
             if (employee == null)

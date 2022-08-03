@@ -17,37 +17,37 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<GetProviderDto>>>> GetProviders()
+        public async Task<ActionResult<ServiceResponse<IEnumerable<GetProviderDto>>>> GetProviders()
         {
             return HandleResponse(await _providerService.GetAllProviders());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<GetProviderDto>>> GetProvider(int id)
+        public async Task<ActionResult<ServiceResponse<GetProviderDto>>> GetProvider(int id)
         {
             return HandleResponse(await _providerService.GetProviderById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<GetProviderDto>>> PostProvider(AddProviderDto provider)
+        public async Task<ActionResult<ServiceResponse<GetProviderDto>>> PostProvider(AddProviderDto provider)
         {
             return HandleResponse(await _providerService.AddProvider(provider));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutProvider(int id, UpdateProviderDto provider)
+        public async Task<ActionResult<ServiceResponse<bool>>> PutProvider(int id, UpdateProviderDto provider)
         {
             return HandleResponse(await _providerService.UpdateProvider(id, provider));
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> DeleteProvider(int id)
+        public async Task<ActionResult<ServiceResponse<bool>>> DeleteProvider(int id)
         {
             return HandleResponse(await _providerService.DeleteProvider(id));
         }
 
         // Method to generalize to avoid code duplication
-        private ActionResult<ServerResponse<T>> HandleResponse<T> (ServerResponse<T> response)
+        private ActionResult<ServiceResponse<T>> HandleResponse<T> (ServiceResponse<T> response)
         {
             return (response.Success) ? Ok(response) : NotFound(response); 
         }

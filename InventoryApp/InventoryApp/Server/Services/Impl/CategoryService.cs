@@ -22,10 +22,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all categories
         /// </summary>
-        /// <returns>List of categories wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetCategoryDto>>> GetAllCategories()
+        /// <returns>List of categories wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetCategoryDto>>> GetAllCategories()
         {
-            var response = new ServerResponse<IEnumerable<GetCategoryDto>>();
+            var response = new ServiceResponse<IEnumerable<GetCategoryDto>>();
             var categories = await _context.Categories.ToListAsync();
 
             if (categories == null)
@@ -45,10 +45,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get category by id
         /// </summary>
         /// <param name="id">Category id</param>
-        /// <returns>Category wrapped in a response</returns>
-        public async Task<ServerResponse<GetCategoryDto>> GetCategoryById(int id)
+        /// <returns>Category wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetCategoryDto>> GetCategoryById(int id)
         {
-            var response = new ServerResponse<GetCategoryDto>();
+            var response = new ServiceResponse<GetCategoryDto>();
             var category = await _context.Categories.FindAsync(id);
 
             if (category == null)
@@ -67,10 +67,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Add new category into database
         /// </summary>
         /// <param name="category">Category to insert into database</param>
-        /// <returns>Added category wrapped in a response</returns>  
-        public async Task<ServerResponse<GetCategoryDto>> AddCategory(AddCategoryDto category)
+        /// <returns>Added category wrapped in a service response</returns> 
+        public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto category)
         {
-            var response = new ServerResponse<GetCategoryDto>();
+            var response = new ServiceResponse<GetCategoryDto>();
             // Try catch block to catch any errors that may occur while inserting into database
             try {
                 var newCategory = _mapper.Map<Category>(category);
@@ -97,10 +97,10 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Category id to update</param>
         /// <param name="category">Category</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateCategory(int id, UpdateCategoryDto category)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> UpdateCategory(int id, UpdateCategoryDto category)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             if (id != category.Id)
             {
                 response.Success = false;
@@ -148,10 +148,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Delete category from database
         /// </summary>s
         /// <param name="id">Category id to delete</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> DeleteCategory(int id)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> DeleteCategory(int id)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var category = await _context.Categories.FindAsync(id);
             if (category == null)
             {

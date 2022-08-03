@@ -1,10 +1,10 @@
-namespace InventoryApp.Shared.Models
+namespace InventoryApp.Shared
 {
     /// <summary>
-    /// Server response for http request; add aditional information to the returning result
+    /// Service response for http request; add aditional information to the returning result
     /// </summary>
     
-    public class ServerResponse<T>
+    public class ServiceResponse<T>
     {
         /// <summary>
         /// Boolean value indicating if the request was successful or not

@@ -22,10 +22,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all customers
         /// </summary>
-        /// <returns>List of customers wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetCustomerDto>>> GetAllCustomers()
+        /// <returns>List of customers wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetCustomerDto>>> GetAllCustomers()
         {
-            var response = new ServerResponse<IEnumerable<GetCustomerDto>>();
+            var response = new ServiceResponse<IEnumerable<GetCustomerDto>>();
             var customers = await _context.Customers.ToListAsync();
 
             if (customers == null)
@@ -45,10 +45,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get customer by id
         /// </summary>
         /// <param name="id">Customer id</param>
-        /// <returns>Customer wrapped in a response</returns>
-        public async Task<ServerResponse<GetCustomerDto>> GetCustomerById(int id)
+        /// <returns>Customer wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetCustomerDto>> GetCustomerById(int id)
         {
-            var response = new ServerResponse<GetCustomerDto>();
+            var response = new ServiceResponse<GetCustomerDto>();
             var customer = await _context.Customers.FindAsync(id);
 
             if (customer == null)
@@ -68,10 +68,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Add new customer into database
         /// </summary>
         /// <param name="customer">Customer to insert into database</param>
-        /// <returns>Added category wrapped in a response</returns>  
-        public async Task<ServerResponse<GetCustomerDto>> AddCustomer(AddCustomerDto customer)
+        /// <returns>Added category wrapped in a service response</returns>  
+        public async Task<ServiceResponse<GetCustomerDto>> AddCustomer(AddCustomerDto customer)
         {
-            var response = new ServerResponse<GetCustomerDto>();
+            var response = new ServiceResponse<GetCustomerDto>();
             // Try catch block to catch any errors that may occur while inserting into database
             try 
             {
@@ -99,10 +99,10 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Customer id to update</param>
         /// <param name="customer">Customer to update in database</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateCustomer(int id, UpdateCustomerDto customer)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> UpdateCustomer(int id, UpdateCustomerDto customer)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             if (id != customer.Id)
             {
                 response.Success = false;
@@ -150,10 +150,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Delete customer from database
         /// </summary>
         /// <param name="id">Customer id to delete</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> DeleteCustomer(int id)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> DeleteCustomer(int id)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null)
             {

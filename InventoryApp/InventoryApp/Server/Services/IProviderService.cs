@@ -4,10 +4,10 @@ namespace InventoryApp.Server.Services
 {
     public interface IProviderService
     {
-        Task<ServerResponse<IEnumerable<GetProviderDto>>> GetAllProviders();
-        Task<ServerResponse<GetProviderDto>> GetProviderById(int id);
-        Task<ServerResponse<GetProviderDto>> AddProvider(AddProviderDto provider);
-        Task<ServerResponse<bool>> UpdateProvider(int id, UpdateProviderDto provider);
-        Task<ServerResponse<bool>> DeleteProvider(int id);
+        Task<ServiceResponse<IEnumerable<GetProviderDto>>> GetAllProviders();
+        Task<ServiceResponse<GetProviderDto>> GetProviderById(int id);
+        Task<ServiceResponse<GetProviderDto>> AddProvider(AddProviderDto provider);
+        Task<ServiceResponse<bool>> UpdateProvider(int id, UpdateProviderDto provider);
+        Task<ServiceResponse<bool>> DeleteProvider(int id);
     }
 }

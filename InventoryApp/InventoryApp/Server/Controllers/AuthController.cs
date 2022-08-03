@@ -16,33 +16,33 @@ namespace InventoryApp.Server.Controllers
 
         [Authorize (Roles = "Administrator")]
         [HttpPost("register")]
-        public async Task<ActionResult<ServerResponse<int>>> Register(AddEmployeeDto employee)
+        public async Task<ActionResult<ServiceResponse<int>>> Register(AddEmployeeDto employee)
         {
             return HandleResponse(await _authRepository.Register(employee, employee.Password));
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ActionResult<ServerResponse<string>>> Login(EmployeeLoginDto request)
+        public async Task<ActionResult<ServiceResponse<string>>> Login(EmployeeLoginDto request)
         {
             return HandleResponse(await _authRepository.Login(request.Email, request.Password));
         }
 
         [AllowAnonymous]
         [HttpPost("forgot-password")]
-        public async Task<ActionResult<ServerResponse<bool>>> ForgotPassword(string email)
+        public async Task<ActionResult<ServiceResponse<bool>>> ForgotPassword(string email)
         {
             return HandleResponse(await _authRepository.ForgotPassword(email));
         }
 
         [AllowAnonymous]
         [HttpPost("reset-password")]
-        public async Task<ActionResult<ServerResponse<bool>>> ResetPassword(ResetPasswordRequest request)
+        public async Task<ActionResult<ServiceResponse<bool>>> ResetPassword(ResetPasswordRequest request)
         {
             return HandleResponse(await _authRepository.ResetPassword(request));
         }
 
-        private ActionResult<ServerResponse<T>> HandleResponse<T> (ServerResponse<T> response)
+        private ActionResult<ServiceResponse<T>> HandleResponse<T> (ServiceResponse<T> response)
         {
             return (response.Success) ? Ok(response) : BadRequest(response); 
         }   

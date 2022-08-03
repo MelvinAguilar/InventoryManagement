@@ -4,11 +4,11 @@ namespace InventoryApp.Server.Services
 {
     public interface ICategoryService
     {
-        Task<ServerResponse<IEnumerable<GetCategoryDto>>> GetAllCategories();
-        Task<ServerResponse<GetCategoryDto>> GetCategoryById(int id);
-        Task<ServerResponse<GetCategoryDto>> AddCategory(AddCategoryDto category);
-        Task<ServerResponse<bool>> UpdateCategory(int id, UpdateCategoryDto category);
-        Task<ServerResponse<bool>> DeleteCategory(int id);
+        Task<ServiceResponse<IEnumerable<GetCategoryDto>>> GetAllCategories();
+        Task<ServiceResponse<GetCategoryDto>> GetCategoryById(int id);
+        Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto category);
+        Task<ServiceResponse<bool>> UpdateCategory(int id, UpdateCategoryDto category);
+        Task<ServiceResponse<bool>> DeleteCategory(int id);
         
     }
 }

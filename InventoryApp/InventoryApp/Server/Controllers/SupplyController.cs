@@ -17,32 +17,32 @@ namespace InventoryApp.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<GetSupplyDto>>>> GetSupplies()
+        public async Task<ActionResult<ServiceResponse<IEnumerable<GetSupplyDto>>>> GetSupplies()
         {
             return HandleResponse(await _supplyService.GetAllSupplies());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<GetSupplyDto>>> GetSupply(int id)
+        public async Task<ActionResult<ServiceResponse<GetSupplyDto>>> GetSupply(int id)
         {
             return HandleResponse(await _supplyService.GetSupplyById(id));
         }
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse<GetSupplyDto>>> PostSupply(AddSupplyDto supply)
+        public async Task<ActionResult<ServiceResponse<GetSupplyDto>>> PostSupply(AddSupplyDto supply)
         {
             return HandleResponse(await _supplyService.AddSupply(supply));
         }
 
         [Authorize (Roles = "Administrator")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutSupply(int id, UpdateSupplyDto supply)
+        public async Task<ActionResult<ServiceResponse<bool>>> PutSupply(int id, UpdateSupplyDto supply)
         {
             return HandleResponse(await _supplyService.UpdateSupply(id, supply));
         }
 
         // Method to generalize to avoid code duplication
-        private ActionResult<ServerResponse<T>> HandleResponse<T> (ServerResponse<T> response)
+        private ActionResult<ServiceResponse<T>> HandleResponse<T> (ServiceResponse<T> response)
         {
             return (response.Success) ? Ok(response) : NotFound(response); 
         }

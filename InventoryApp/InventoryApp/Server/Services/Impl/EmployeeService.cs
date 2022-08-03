@@ -22,10 +22,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all employees
         /// </summary>
-        /// <returns>List of employees wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees()
+        /// <returns>List of employees wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetEmployeeDto>>> GetAllEmployees()
         {
-            var response = new ServerResponse<IEnumerable<GetEmployeeDto>>();
+            var response = new ServiceResponse<IEnumerable<GetEmployeeDto>>();
             var employees = await _context.Employees.ToListAsync();
 
             if (employees == null)
@@ -45,10 +45,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get employee by id
         /// </summary>
         /// <param name="id">Employee id</param>
-        /// <returns>Employee wrapped in a response</returns>
-        public async Task<ServerResponse<GetEmployeeDto>> GetEmployeeById(int id)
+        /// <returns>Employee wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetEmployeeDto>> GetEmployeeById(int id)
         {
-            var response = new ServerResponse<GetEmployeeDto>();
+            var response = new ServiceResponse<GetEmployeeDto>();
             var employee = await _context.Employees.FindAsync(id);
 
             if (employee == null)
@@ -69,12 +69,12 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Employee Id</param>
         /// <param name="employee">Employee to update</param>
-        /// <returns>Success or error message in server response</returns>
+        /// <returns>Success or error message in service response</returns>
         /// <remarks>This method not update password</remarks>
         /// <remarks>This will only update the employee if the user is the same as the one who created the employee</remarks>
-        public async Task<ServerResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee)
+        public async Task<ServiceResponse<bool>> UpdateEmployee(int id, UpdateEmployeeDto employee)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             if (id != employee.Id)
             {
                 response.Success = false;
@@ -125,11 +125,11 @@ namespace InventoryApp.Server.Services.Impl
         /// Delete employee from database
         /// </summary>
         /// <param name="id">Employee Id</param>
-        /// <returns>Success or error message in server response</returns>
+        /// <returns>Success or error message in service response</returns>
         /// <remarks>The admin cant delete himself or another admins</remarks>
-        public async Task<ServerResponse<bool>> DeleteEmployee(int id)
+        public async Task<ServiceResponse<bool>> DeleteEmployee(int id)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var employee = await _context.Employees.FindAsync(id);
 
             if (employee == null)

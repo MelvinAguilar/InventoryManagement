@@ -28,10 +28,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all supplies
         /// </summary>
-        /// <returns>List of supplies wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetSupplyDto>>> GetAllSupplies()
+        /// <returns>List of supplies wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetSupplyDto>>> GetAllSupplies()
         {
-            var response = new ServerResponse<IEnumerable<GetSupplyDto>>();
+            var response = new ServiceResponse<IEnumerable<GetSupplyDto>>();
             // Get all supplies with related entities
             var supplies = await _context.Supplies
                 .Include(s => s.IdEmployeeNavigation)
@@ -55,10 +55,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get supply by id
         /// </summary>
         /// <param name="id">Supply id</param>
-        /// <returns>Supply wrapped in a response</returns>
-        public async Task<ServerResponse<GetSupplyDto>> GetSupplyById(int id)
+        /// <returns>Supply wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetSupplyDto>> GetSupplyById(int id)
         {
-            var response = new ServerResponse<GetSupplyDto>();
+            var response = new ServiceResponse<GetSupplyDto>();
             // Get supply with related entities
             var supply = await _context.Supplies
                 .Include(s => s.IdEmployeeNavigation)
@@ -84,14 +84,14 @@ namespace InventoryApp.Server.Services.Impl
         /// Add new supply into database
         /// </summary>
         /// <param name="supply">Supply to add</param>
-        /// <returns>Added supply wrapped in a response</returns>
-        public async Task<ServerResponse<GetSupplyDto>> AddSupply(AddSupplyDto supply)
+        /// <returns>Added supply wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetSupplyDto>> AddSupply(AddSupplyDto supply)
         {
             var newSupply = _mapper.Map<Supply>(supply);
             _context.Supplies.Add(newSupply);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<GetSupplyDto> { Data = _mapper.Map<GetSupplyDto>(newSupply) };
+            return new ServiceResponse<GetSupplyDto> { Data = _mapper.Map<GetSupplyDto>(newSupply) };
         }
         
         /// <summary>
@@ -99,10 +99,10 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Supply Id</param>
         /// <param name="supply">Supply to update</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdateSupply(int id, UpdateSupplyDto supply)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> UpdateSupply(int id, UpdateSupplyDto supply)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             if (id != supply.Id)
             {
                 response.Success = false;

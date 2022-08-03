@@ -4,9 +4,9 @@ namespace InventoryApp.Server.Services
 {
     public interface IPurchaseService
     {
-        Task<ServerResponse<IEnumerable<GetPurchaseDto>>> GetAllPurchases();
-        Task<ServerResponse<GetPurchaseDto>> GetPurchaseById(int id);
-        Task<ServerResponse<GetPurchaseDto>> AddPurchase(AddPurchaseDto purchase);
-        Task<ServerResponse<bool>> UpdatePurchase(int id, UpdatePurchaseDto purchase);
+        Task<ServiceResponse<IEnumerable<GetPurchaseDto>>> GetAllPurchases();
+        Task<ServiceResponse<GetPurchaseDto>> GetPurchaseById(int id);
+        Task<ServiceResponse<GetPurchaseDto>> AddPurchase(AddPurchaseDto purchase);
+        Task<ServiceResponse<bool>> UpdatePurchase(int id, UpdatePurchaseDto purchase);
     }
 }

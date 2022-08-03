@@ -17,34 +17,34 @@ namespace InventoryApp.Server.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<ServerResponse<IEnumerable<GetEmployeeDto>>>> GetEmployees()
+        public async Task<ActionResult<ServiceResponse<IEnumerable<GetEmployeeDto>>>> GetEmployees()
         {
             return HandleResponse(await _employeeService.GetAllEmployees());
         }
 
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServerResponse<GetEmployeeDto>>> GetEmployee(int id)
+        public async Task<ActionResult<ServiceResponse<GetEmployeeDto>>> GetEmployee(int id)
         {
             return HandleResponse(await _employeeService.GetEmployeeById(id));
         }
 
         [Authorize (Roles = "Administrator")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> PutEmployee(int id, UpdateEmployeeDto employee)
+        public async Task<ActionResult<ServiceResponse<bool>>> PutEmployee(int id, UpdateEmployeeDto employee)
         {
             return HandleResponse(await _employeeService.UpdateEmployee(id, employee));
         }
 
         [Authorize (Roles = "Administrator")]
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ServerResponse<bool>>> DeleteEmployee(int id)
+        public async Task<ActionResult<ServiceResponse<bool>>> DeleteEmployee(int id)
         {
             return HandleResponse(await _employeeService.DeleteEmployee(id));
         }
 
         // Method to generalize to avoid code duplication
-        private ActionResult<ServerResponse<T>> HandleResponse<T> (ServerResponse<T> response)
+        private ActionResult<ServiceResponse<T>> HandleResponse<T> (ServiceResponse<T> response)
         {
             return (response.Success) ? Ok(response) : NotFound(response); 
         }

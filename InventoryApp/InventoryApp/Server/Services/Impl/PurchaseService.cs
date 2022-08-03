@@ -28,10 +28,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all purchases
         /// </summary>
-        /// <returns>List of purchases wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetPurchaseDto>>> GetAllPurchases()
+        /// <returns>List of purchases wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetPurchaseDto>>> GetAllPurchases()
         {
-            var response = new ServerResponse<IEnumerable<GetPurchaseDto>>();
+            var response = new ServiceResponse<IEnumerable<GetPurchaseDto>>();
             // Get purchases with related entities
             var purchases = await _context.Purchases
                 .Include(p => p.IdCustomerNavigation)
@@ -55,10 +55,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get purchase by id
         /// </summary>
         /// <param name="id">Purchase id</param>
-        /// <returns>Purchase wrapped in a response</returns>
-        public async Task<ServerResponse<GetPurchaseDto>> GetPurchaseById(int id)
+        /// <returns>Purchase wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetPurchaseDto>> GetPurchaseById(int id)
         {
-            var response = new ServerResponse<GetPurchaseDto>();
+            var response = new ServiceResponse<GetPurchaseDto>();
             // Get purchase with related entities and details
             var purchase = await _context.Purchases
                 .Include(p => p.IdCustomerNavigation)
@@ -84,14 +84,14 @@ namespace InventoryApp.Server.Services.Impl
         /// Add new purchase into database
         /// </summary>
         /// <param name="purchase">Purchase to add</param>
-        /// <returns>Added purchase wrapped in a response</returns>
-        public async Task<ServerResponse<GetPurchaseDto>> AddPurchase(AddPurchaseDto purchase)
+        /// <returns>Added purchase wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetPurchaseDto>> AddPurchase(AddPurchaseDto purchase)
         {
             var newPurchase = _mapper.Map<Purchase>(purchase);
             _context.Purchases.Add(newPurchase);
             await _context.SaveChangesAsync();
 
-            return new ServerResponse<GetPurchaseDto> { Data = _mapper.Map<GetPurchaseDto>(newPurchase) };
+            return new ServiceResponse<GetPurchaseDto> { Data = _mapper.Map<GetPurchaseDto>(newPurchase) };
         }
 
         /// <summary>
@@ -99,10 +99,10 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Purchase Id</param>
         /// <param name="purchase">Purchase to update</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> UpdatePurchase(int id, UpdatePurchaseDto purchase)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> UpdatePurchase(int id, UpdatePurchaseDto purchase)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             if (id != purchase.Id)
             {
                 response.Success = false;

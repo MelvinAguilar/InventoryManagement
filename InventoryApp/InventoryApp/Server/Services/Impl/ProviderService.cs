@@ -22,10 +22,10 @@ namespace InventoryApp.Server.Services.Impl
         /// <summary>
         /// Get all providers
         /// </summary>
-        /// <returns>List of providers wrapped in a response</returns>
-        public async Task<ServerResponse<IEnumerable<GetProviderDto>>> GetAllProviders()
+        /// <returns>List of providers wrapped in a service response</returns>
+        public async Task<ServiceResponse<IEnumerable<GetProviderDto>>> GetAllProviders()
         {
-            var response = new ServerResponse<IEnumerable<GetProviderDto>>();
+            var response = new ServiceResponse<IEnumerable<GetProviderDto>>();
             var providers = await _context.Providers.ToListAsync();
 
             if (providers == null)
@@ -45,10 +45,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Get provider by id
         /// </summary>
         /// <param name="id">Provider id</param>
-        /// <returns>Provider wrapped in a response</returns>
-        public async Task<ServerResponse<GetProviderDto>> GetProviderById(int id)
+        /// <returns>Provider wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetProviderDto>> GetProviderById(int id)
         {
-            var response = new ServerResponse<GetProviderDto>();
+            var response = new ServiceResponse<GetProviderDto>();
             var provider = await _context.Providers.FindAsync(id);
 
             if (provider == null)
@@ -68,10 +68,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Add new provider into database
         /// </summary>
         /// <param name="provider">Provider to add</param>
-        /// <returns>Added provider wrapped in a response</returns>
-        public async Task<ServerResponse<GetProviderDto>> AddProvider(AddProviderDto provider)
+        /// <returns>Added provider wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetProviderDto>> AddProvider(AddProviderDto provider)
         {
-            var response = new ServerResponse<GetProviderDto>();
+            var response = new ServiceResponse<GetProviderDto>();
             // Try catch block to catch any errors that may occur while inserting into database
             try
             {
@@ -99,10 +99,10 @@ namespace InventoryApp.Server.Services.Impl
         /// </summary>
         /// <param name="id">Provider Id</param>
         /// <param name="provider">Provider to update</param>
-        /// <returns>Server response</returns>
-        public async Task<ServerResponse<bool>> UpdateProvider(int id, UpdateProviderDto provider)
+        /// <returns>Success or failure message in a service response</returns>
+        public async Task<ServiceResponse<bool>> UpdateProvider(int id, UpdateProviderDto provider)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             if (id != provider.Id)
             {
                 response.Success = false;
@@ -152,10 +152,10 @@ namespace InventoryApp.Server.Services.Impl
         /// Delete provider from database
         /// </summary>
         /// <param name="id">Provider id to delete</param>
-        /// <returns>Success or error message in server response</returns>
-        public async Task<ServerResponse<bool>> DeleteProvider(int id)
+        /// <returns>Success or error message in service response</returns>
+        public async Task<ServiceResponse<bool>> DeleteProvider(int id)
         {
-            var response = new ServerResponse<bool>();
+            var response = new ServiceResponse<bool>();
             var provider = await _context.Providers.FindAsync(id);
 
             if (provider == null)
