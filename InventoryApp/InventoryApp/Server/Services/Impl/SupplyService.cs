@@ -3,12 +3,6 @@ using AutoMapper;
 using InventoryApp.Server.Dtos.SupplyDtos;
 using Microsoft.EntityFrameworkCore;
 
-/*
-    TODO: Add the following:
-    1. Add supply details
-    2. Update supply details
-*/
-
 namespace InventoryApp.Server.Services.Impl
 {
     public class SupplyService : ISupplyService
@@ -87,11 +81,34 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>Added supply wrapped in a service response</returns>
         public async Task<ServiceResponse<GetSupplyDto>> AddSupply(AddSupplyDto supply)
         {
+            var response = new ServiceResponse<GetSupplyDto>();
             var newSupply = _mapper.Map<Supply>(supply);
-            _context.Supplies.Add(newSupply);
-            await _context.SaveChangesAsync();
 
-            return new ServiceResponse<GetSupplyDto> { Data = _mapper.Map<GetSupplyDto>(newSupply) };
+            // Begin a transaction to add new supply and its details
+            // For more information, see:  https://www.entityframeworktutorial.net/entityframework6/transaction-in-entity-framework.aspx
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    newSupply.IdEmployee = GetAuthenticatedEmployeeId(); // Get employee id from claims
+                    _context.Supplies.Add(newSupply); // Add new supply
+                    await _context.SaveChangesAsync(); // Save changes
+                    
+                    // Commit transaction
+                    transaction.Commit();
+
+                    response.Data = _mapper.Map<GetSupplyDto>(newSupply);
+                }
+                catch (Exception ex)
+                {
+                    // Rollback transaction if exception occurs
+                    transaction.Rollback();
+                    response.Success = false;
+                    response.Message = "Error while adding supply: " + ex.Message;
+                }
+            }
+
+            return response;
         }
         
         /// <summary>
@@ -100,34 +117,61 @@ namespace InventoryApp.Server.Services.Impl
         /// <param name="id">Supply Id</param>
         /// <param name="supply">Supply to update</param>
         /// <returns>Success or error message in service response</returns>
-        public async Task<ServiceResponse<bool>> UpdateSupply(int id, UpdateSupplyDto supply)
+        public async Task<ServiceResponse<bool>> UpdateSupply(int id, UpdateSupplyDto request)
         {
             var response = new ServiceResponse<bool>();
-            if (id != supply.Id)
+            if (id != request.Id)
             {
                 response.Success = false;
                 response.Message = "Supply id mismatch";
+                return response;
             }
-            else
+
+            // Get supply with supply details
+            var existingSupply = await _context.Supplies
+                .Include(s => s.SupplyDetails)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (existingSupply == null)
             {
-                try 
-                {
-                    // TODO: Update only a part of the entity
-                    var updatedSupply = _mapper.Map<Supply>(supply);
-                    _context.Entry(updatedSupply).State = EntityState.Modified;
+                response.Success = false;
+                response.Message = "Supply not found";
+                return response;
+            } 
+            else if ( existingSupply.DateSupplied.AddHours(2) < DateTime.Now) 
+            {
+                response.Success = false;
+                response.Message = "Supply cannot be updated after 2 hours";
+                return response;
+            }
+
+            // Begin a transaction to update supply and its details
+            // For more information, see:  https://www.entityframeworktutorial.net/entityframework6/transaction-in-entity-framework.aspx
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try {
+                    _context.Supplies.Attach(existingSupply);
+                    existingSupply.TotalAmount = request.TotalAmount;
+                    existingSupply.Payment = request.Payment;
+                    existingSupply.DateModified = DateTime.Now;
+                    existingSupply.SupplyDetails = _mapper.Map<List<SupplyDetail>>(request.SupplyDetails);
+
                     await _context.SaveChangesAsync();
 
-                    response.Data = true;
-                }
-                catch (DbUpdateConcurrencyException e)
+                    // Commit transaction
+                    transaction.Commit();
+                    
+                    response.Success = true;
+                } 
+                catch (Exception ex)
                 {
+                    // Rollback transaction if exception occurs
+                    transaction.Rollback();
                     response.Success = false;
-                    if (!SupplyExists(supply.Id))
-                        response.Message = "Supply not found";
-                    else 
-                        response.Message = "Error updating supply: " + e.Message;
+                    response.Message = "Error while updating supply: " + ex.Message;
                 }
-            }
+            }            
+
             return response;
         }
 
@@ -143,13 +187,11 @@ namespace InventoryApp.Server.Services.Impl
         /// Get the ID of the authenticated employee
         /// </summary>
         /// <returns>Employee ID</returns>
-        /* This method may be used in the future to auditory the employee who submits request
-           to change a provider*/
         private int GetAuthenticatedEmployeeId()
         {
             if (_httpContextAccessor.HttpContext == null)
                 throw new Exception("No HTTP context found");
             return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        }    
+        }
     }
 }

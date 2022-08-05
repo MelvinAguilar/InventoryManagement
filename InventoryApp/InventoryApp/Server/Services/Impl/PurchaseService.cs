@@ -87,11 +87,32 @@ namespace InventoryApp.Server.Services.Impl
         /// <returns>Added purchase wrapped in a service response</returns>
         public async Task<ServiceResponse<GetPurchaseDto>> AddPurchase(AddPurchaseDto purchase)
         {
+            var response = new ServiceResponse<GetPurchaseDto>();
             var newPurchase = _mapper.Map<Purchase>(purchase);
-            _context.Purchases.Add(newPurchase);
-            await _context.SaveChangesAsync();
 
-            return new ServiceResponse<GetPurchaseDto> { Data = _mapper.Map<GetPurchaseDto>(newPurchase) };
+            // Begin a transaction to add new purchase and its details
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    newPurchase.IdEmployee = GetAuthenticatedEmployeeId();
+                    _context.Purchases.Add(newPurchase); // Add new purchase
+                    await _context.SaveChangesAsync(); // Save changes 
+
+                    // Commit transaction
+                    transaction.Commit();
+
+                    response.Data = _mapper.Map<GetPurchaseDto>(newPurchase);
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    response.Success = false;
+                    response.Message = "Error while adding purchase: " + ex.Message;
+                }
+            }
+
+            return response;
         }
 
         /// <summary>
@@ -107,26 +128,50 @@ namespace InventoryApp.Server.Services.Impl
             {
                 response.Success = false;
                 response.Message = "Purchase id mismatch";
-            } 
-            else 
-            {
-                try 
-                {
-                    // TODO: Update only a part of the entity
-                    var updatedPurchase = _mapper.Map<Purchase>(purchase);
-                    _context.Entry(updatedPurchase).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
-                    
-                    response.Data = true;
-                } 
-                catch (DbUpdateConcurrencyException e) 
-                {
-                    response.Success = false;
+                return response;
+            }
 
-                    if (!PurchaseExists(id))
-                        response.Message = "Purchase not found";
-                    else 
-                        response.Message = "Error updating purchase: " + e.Message;
+            // Get purchase with purchase details
+            var existingPurchase = await _context.Purchases
+                .Include(p => p.PurchaseDetails)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (existingPurchase == null)
+            {
+                response.Success = false;
+                response.Message = "Purchase not found";
+                return response;
+            }
+            else if (existingPurchase.DatePurchased.AddMinutes(45) < DateTime.Now)
+            {
+                response.Success = false;
+                response.Message = "Purchase cannot be updated after 45 minutes";
+                return response;
+            }
+
+            // Begin a transaction to update purchase and its details
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    _context.Entry(existingPurchase).State = EntityState.Modified;
+                    existingPurchase.GrossAmount = purchase.GrossAmount;
+                    existingPurchase.Tax = purchase.Tax;
+                    existingPurchase.Discount = purchase.Discount;
+                    existingPurchase.NetAmount = purchase.NetAmount;
+                    existingPurchase.Payment = purchase.Payment;
+                    existingPurchase.IdCustomer = purchase.IdCustomer;
+                    existingPurchase.DateModified = DateTime.Now;
+                    existingPurchase.PurchaseDetails = _mapper.Map<List<PurchaseDetail>>(purchase.PurchaseDetails);
+                    
+                    await _context.SaveChangesAsync(); // Save changes 
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    response.Success = false;
+                    response.Message = "Error while updating purchase: " + ex.Message;
                 }
             }
 
@@ -145,8 +190,6 @@ namespace InventoryApp.Server.Services.Impl
         /// Get the ID of the authenticated employee
         /// </summary>
         /// <returns>Employee ID</returns>
-        /* This method may be used in the future to auditory the employee who submits request
-           to change a purchase*/
         private int GetAuthenticatedEmployeeId()
         {
             if (_httpContextAccessor.HttpContext == null)

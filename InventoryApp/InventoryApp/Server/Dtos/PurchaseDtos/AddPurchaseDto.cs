@@ -11,7 +11,7 @@ namespace InventoryApp.Server.Dtos.PurchaseDtos
     {
         public AddPurchaseDto()
         {
-            PurchaseDetails = new HashSet<GetPurchaseDetailDto>();
+            PurchaseDetails = new HashSet<AddPurchaseDetailDto>();
         }
 
         [Column("gross_amount", TypeName = "money")]
@@ -25,13 +25,11 @@ namespace InventoryApp.Server.Dtos.PurchaseDtos
         [Column("payment", TypeName = "money")]
         public decimal Payment { get; set; }
         [Column("date_purchased", TypeName = "datetime")]
-        public DateTime DatePurchased { get; set; }
-        [Column("id_employee")]
-        public int IdEmployee { get; set; }
+        public DateTime DatePurchased { get; set; } = DateTime.Now;
         [Column("id_customer")]
         public int IdCustomer { get; set; }
 
         [InverseProperty("IdPurchaseNavigation")]
-        public virtual ICollection<GetPurchaseDetailDto> PurchaseDetails { get; set; }
+        public virtual ICollection<AddPurchaseDetailDto> PurchaseDetails { get; set; }
     }
 }

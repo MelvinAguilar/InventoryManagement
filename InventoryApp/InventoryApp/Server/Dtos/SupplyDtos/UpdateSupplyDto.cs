@@ -11,7 +11,7 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
     {
         public UpdateSupplyDto()
         {
-            SupplyDetails = new HashSet<GetSupplyDetailDto>();
+            SupplyDetails = new HashSet<UpdateSupplyDetailDto>();
         }
 
         [Key]
@@ -25,6 +25,6 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
         public int IdEmployee { get; set; }
 
         [InverseProperty("IdSupplyNavigation")]
-        public virtual ICollection<GetSupplyDetailDto> SupplyDetails { get; set; }
+        public virtual ICollection<UpdateSupplyDetailDto> SupplyDetails { get; set; }
     }
 }

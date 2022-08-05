@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace InventoryApp.Shared.Models
 {
     [Table("EMPLOYEE")]
-    [Index("PhoneNumber", Name = "UQ__EMPLOYEE__A1936A6B9F344C76", IsUnique = true)]
-    [Index("Email", Name = "UQ__EMPLOYEE__AB6E61640240A062", IsUnique = true)]
+    [Index("PhoneNumber", Name = "UQ__EMPLOYEE__A1936A6BCDAF41BF", IsUnique = true)]
+    [Index("Email", Name = "UQ__EMPLOYEE__AB6E6164523DC6B6", IsUnique = true)]
     public partial class Employee
     {
         public Employee()

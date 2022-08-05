@@ -97,6 +97,9 @@ namespace InventoryApp.Shared.Models.Data
 
             modelBuilder.Entity<PurchaseDetail>(entity =>
             {
+                entity.HasKey(e => new { e.IdPurchase, e.IdProduct })
+                    .HasName("pk_purchase_detail");
+
                 entity.HasOne(d => d.IdProductNavigation)
                     .WithMany(p => p.PurchaseDetails)
                     .HasForeignKey(d => d.IdProduct)
@@ -129,6 +132,9 @@ namespace InventoryApp.Shared.Models.Data
 
             modelBuilder.Entity<SupplyDetail>(entity =>
             {
+                entity.HasKey(e => new { e.IdSupply, e.IdProduct })
+                    .HasName("pk_supply_detail");
+
                 entity.HasOne(d => d.IdProductNavigation)
                     .WithMany(p => p.SupplyDetails)
                     .HasForeignKey(d => d.IdProduct)

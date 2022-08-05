@@ -11,24 +11,19 @@ namespace InventoryApp.Server.Dtos.SupplyDtos
     {
         public AddSupplyDto()
         {
-            SupplyDetails = new HashSet<GetSupplyDetailDto>();
+            SupplyDetails = new HashSet<AddSupplyDetailDto>();
         }
 
-        [Key]
-        [Column("id")]
-        public int Id { get; set; }
         [Column("total_amount", TypeName = "money")]
         public decimal TotalAmount { get; set; }
         [Column("payment", TypeName = "money")]
         public decimal Payment { get; set; }
         [Column("date_supplied", TypeName = "datetime")]
-        public DateTime DateSupplied { get; set; }
-        [Column("id_employee")]
-        public int IdEmployee { get; set; }
+        public DateTime DateSupplied { get; set; } = DateTime.Now;
         [Column("id_provider")]
         public int IdProvider { get; set; }
 
         [InverseProperty("IdSupplyNavigation")]
-        public virtual ICollection<GetSupplyDetailDto> SupplyDetails { get; set; }
+        public virtual ICollection<AddSupplyDetailDto> SupplyDetails { get; set; }
     }
 }

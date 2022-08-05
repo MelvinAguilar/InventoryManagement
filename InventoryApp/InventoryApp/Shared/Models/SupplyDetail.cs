@@ -10,16 +10,15 @@ namespace InventoryApp.Shared.Models
     public partial class SupplyDetail
     {
         [Key]
-        [Column("id")]
-        public int Id { get; set; }
+        [Column("id_supply")]
+        public int IdSupply { get; set; }
+        [Key]
+        [Column("id_product")]
+        public int IdProduct { get; set; }
         [Column("quantity")]
         public int Quantity { get; set; }
         [Column("unit_price", TypeName = "money")]
         public decimal UnitPrice { get; set; }
-        [Column("id_supply")]
-        public int IdSupply { get; set; }
-        [Column("id_product")]
-        public int IdProduct { get; set; }
 
         [ForeignKey("IdProduct")]
         [InverseProperty("SupplyDetails")]

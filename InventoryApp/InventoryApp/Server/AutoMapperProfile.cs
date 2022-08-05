@@ -38,8 +38,12 @@ namespace InventoryApp.Server
             CreateMap<AddSupplyDto, Supply>();
             // Map from SupplyDetail
             CreateMap<SupplyDetail, GetSupplyDetailDto>().ReverseMap();
+            CreateMap<AddSupplyDetailDto, SupplyDetail>();
+            CreateMap<UpdateSupplyDetailDto, SupplyDetail>().ReverseMap();
             // Map from PurchaseDetail
             CreateMap<PurchaseDetail, GetPurchaseDetailDto>().ReverseMap();
+            CreateMap<AddPurchaseDetailDto, PurchaseDetail>();
+            CreateMap<UpdatePurchaseDetailDto, PurchaseDetail>().ReverseMap();
         }
     }
 }

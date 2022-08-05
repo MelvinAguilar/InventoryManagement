@@ -1,24 +1,18 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using InventoryApp.Server.Dtos.ProductDtos;
 
-namespace InventoryApp.Server.Dtos.PurchaseDetailDtos
+namespace InventoryApp.Server.Dtos.SupplyDetailDtos
 {
     /// <summary>
-    /// Dto for getting purchase detail
+    /// Dto for updating supply detail
     /// </summary>
-    public partial class GetPurchaseDetailDto
+    public partial class AddSupplyDetailDto
     {
-        [Column("id_purchase")]
-        public int IdPurchase { get; set; }
         [Column("id_product")]
         public int IdProduct { get; set; }
         [Column("quantity")]
         public int Quantity { get; set; }
         [Column("unit_price", TypeName = "money")]
         public decimal UnitPrice { get; set; }
-
-        [ForeignKey("IdProduct")]
-        [InverseProperty("PurchaseDetails")]
-        public virtual GetProductDto IdProductNavigation { get; set; } = null!;
     }
 }
