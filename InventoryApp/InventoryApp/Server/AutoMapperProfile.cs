@@ -1,13 +1,13 @@
 using AutoMapper;
-using InventoryApp.Server.Dtos.CategoryDtos;
-using InventoryApp.Server.Dtos.CustomerDtos;
-using InventoryApp.Server.Dtos.EmployeeDtos;
-using InventoryApp.Server.Dtos.ProductDtos;
-using InventoryApp.Server.Dtos.ProviderDtos;
-using InventoryApp.Server.Dtos.PurchaseDetailDtos;
-using InventoryApp.Server.Dtos.PurchaseDtos;
-using InventoryApp.Server.Dtos.SupplyDetailDtos;
-using InventoryApp.Server.Dtos.SupplyDtos;
+using InventoryApp.Shared.Dtos.CategoryDtos;
+using InventoryApp.Shared.Dtos.CustomerDtos;
+using InventoryApp.Shared.Dtos.EmployeeDtos;
+using InventoryApp.Shared.Dtos.ProductDtos;
+using InventoryApp.Shared.Dtos.ProviderDtos;
+using InventoryApp.Shared.Dtos.PurchaseDetailDtos;
+using InventoryApp.Shared.Dtos.PurchaseDtos;
+using InventoryApp.Shared.Dtos.SupplyDetailDtos;
+using InventoryApp.Shared.Dtos.SupplyDtos;
 
 namespace InventoryApp.Server
 {

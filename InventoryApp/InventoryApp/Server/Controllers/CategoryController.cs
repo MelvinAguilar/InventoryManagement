@@ -1,4 +1,3 @@
-using InventoryApp.Server.Dtos.CategoryDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -46,7 +45,6 @@ namespace InventoryApp.Server.Controllers
             return HandleResponse(await _categoryService.DeleteCategory(id));
         }
 
-        // TODO: Validate the model state ?
         // Method to generalize to avoid code duplication
         private ActionResult<ServiceResponse<T>> HandleResponse<T> (ServiceResponse<T> response)
         {

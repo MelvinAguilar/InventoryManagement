@@ -1,5 +1,3 @@
-using InventoryApp.Server.Dtos.EmployeeDtos;
-
 namespace InventoryApp.Server.Services
 {
     public interface IEmployeeService

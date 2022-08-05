@@ -1,5 +1,3 @@
-using InventoryApp.Server.Dtos.CategoryDtos;
-
 namespace InventoryApp.Server.Services
 {
     public interface ICategoryService

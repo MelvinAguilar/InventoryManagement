@@ -1,4 +1,13 @@
 global using InventoryApp.Shared;
+global using InventoryApp.Shared.Dtos.CategoryDtos;
+global using InventoryApp.Shared.Dtos.CustomerDtos;
+global using InventoryApp.Shared.Dtos.EmployeeDtos;
+global using InventoryApp.Shared.Dtos.ProductDtos;
+global using InventoryApp.Shared.Dtos.ProviderDtos;
+global using InventoryApp.Shared.Dtos.PurchaseDtos;
+global using InventoryApp.Shared.Dtos.SupplyDtos;
+global using InventoryApp.Shared.Dtos.PurchaseDetailDtos;
+global using InventoryApp.Shared.Dtos.SupplyDetailDtos;
 global using InventoryApp.Shared.Models;
 global using InventoryApp.Shared.Models.Data;
 global using InventoryApp.Server.Services;

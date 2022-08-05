@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using AutoMapper;
-using InventoryApp.Server.Dtos.ProviderDtos;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Server.Services.Impl

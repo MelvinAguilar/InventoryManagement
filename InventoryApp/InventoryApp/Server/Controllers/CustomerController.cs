@@ -1,4 +1,3 @@
-using InventoryApp.Server.Dtos.CustomerDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

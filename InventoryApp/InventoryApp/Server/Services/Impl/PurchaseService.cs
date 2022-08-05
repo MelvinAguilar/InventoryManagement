@@ -1,13 +1,6 @@
 using System.Security.Claims;
 using AutoMapper;
-using InventoryApp.Server.Dtos.PurchaseDtos;
 using Microsoft.EntityFrameworkCore;
-
-/*
-    TODO: Add the following:
-    1. Add purchase details 
-    2. Update purchase details
-*/
 
 namespace InventoryApp.Server.Services.Impl
 {

@@ -1,5 +1,3 @@
-using InventoryApp.Server.Dtos.CustomerDtos;
-
 namespace InventoryApp.Server.Services
 {
     public interface ICustomerService

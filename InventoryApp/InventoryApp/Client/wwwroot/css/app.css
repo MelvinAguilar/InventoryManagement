@@ -34,6 +34,14 @@ a, .btn-link {
     color: red;
 }
 
+.vertical-center { 
+    min-height: 100%;
+    min-height: 82vh;
+
+    display: flex;
+    align-items: center;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

@@ -1,5 +1,3 @@
-using InventoryApp.Server.Dtos.PurchaseDtos;
-
 namespace InventoryApp.Server.Services
 {
     public interface IPurchaseService

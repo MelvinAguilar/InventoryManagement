@@ -1,5 +1,3 @@
-using InventoryApp.Server.Dtos.ProviderDtos;
-
 namespace InventoryApp.Server.Services
 {
     public interface IProviderService

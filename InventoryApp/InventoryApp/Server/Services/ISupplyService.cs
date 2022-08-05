@@ -1,5 +1,3 @@
-using InventoryApp.Server.Dtos.SupplyDtos;
-
 namespace InventoryApp.Server.Services
 {
     public interface ISupplyService
