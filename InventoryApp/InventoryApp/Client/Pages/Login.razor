@@ -1,0 +1,49 @@
+﻿@page "/login"
+@inject IAuthService AuthService
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+<div class="vertical-center">
+    <div class="login-form">
+        <h3>Login</h3>
+
+        <EditForm Model="login" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label for="email">Email</label>
+                <InputText id="email" @bind-Value="login.Email" type="email" class="form-control" placeholder="user@example.com" />
+                <ValidationMessage For="@(() => login.Email)" />        
+            </div>
+            <div class="mb-3">
+                <label for="password">Password</label>
+                <InputText id="password" @bind-Value="login.Password" type="password" class="form-control" placeholder="*****" />
+                <ValidationMessage For="@(() => login.Password)" />
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </EditForm>
+        <div class="text-danger">
+            <span>@errorMessage</span>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private EmployeeLoginDto login = new EmployeeLoginDto();
+
+    private string errorMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        var result = await AuthService.Login(login);
+        if (result.Success) {
+            errorMessage = string.Empty;
+
+            await LocalStorage.SetItemAsync("authToken", result.Data);
+            Navigation.NavigateTo("/");
+        }
+        else
+            errorMessage = result.Message;
+    }
+}

@@ -42,6 +42,26 @@ a, .btn-link {
     align-items: center;
 }
 
+.login-form {
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    margin: auto;
+    --background-color: red;
+    border-radius: 12px;
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+.login-form button {
+    width: 100%;
+    margin-top: 40px;
+}
+
+.login-form h3 {
+    text-align: center;
+    margin-bottom: 2em;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
