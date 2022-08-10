@@ -2,6 +2,7 @@
 @inject IAuthService AuthService
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Login</PageTitle>
 <div class="vertical-center">
@@ -37,10 +38,12 @@
     private async Task HandleLogin()
     {
         var result = await AuthService.Login(login);
-        if (result.Success) {
+        if (result.Success) 
+        {
             errorMessage = string.Empty;
 
             await LocalStorage.SetItemAsync("authToken", result.Data);
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
             Navigation.NavigateTo("/");
         }
         else

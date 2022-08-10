@@ -1,0 +1,196 @@
+﻿@page "/customer/"
+@page "/customer/{id:int}"
+@inject NavigationManager Navigation
+@inject ICustomerService CustomerService
+@attribute [Authorize]
+
+<PageTitle>Customer Form</PageTitle>
+
+<div class="p-3 my-3 align-items-center text-white bg-blue-gradiant rounded shadow">
+    @if (Id > 0)
+    {
+        <h1 class="h3 mb-0 text-center">Edit Customer</h1>
+    }
+    else
+    {
+        <h1 class="h3 mb-0 text-center">Add a new Customer</h1>
+    }  
+</div>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="categories">Customer</a></li>
+            @if (Id > 0)
+            {
+                <li class="breadcrumb-item active" aria-current="page">Edit Customer</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Add Customer</li>
+            }
+        </ol>
+    </nav>
+    <div class="row my-1 justify-content-end">
+        <div class="col-sm-auto">
+            <button class="btn btn-default" @onclick="Clear">
+                <i class="oi oi-trash"></i> Clear the form
+            </button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-header-title h5">Customer information</h4>
+        </div>
+        <div class="card-body">
+            <EditForm Model="customer" OnValidSubmit="HandleAddOrUpdateCustomer">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label for="fname">First Name</label>
+                    <InputText id="fname" @bind-Value="customer.FirstName" type="text" class="form-control" placeholder="John" />
+                    <ValidationMessage For="@(() => customer.FirstName)" />       
+                </div>
+                <div class="mb-3">
+                    <label for="lname">Last Name</label>
+                    <InputText id="lname" @bind-Value="customer.LastName" type="text" class="form-control" placeholder="Smith" />
+                    <ValidationMessage For="@(() => customer.LastName)" />       
+                </div>
+                <div class="mb-3">
+                    <label for="phone">Phone Number</label>
+                    <InputText id="phone" @bind-Value="customer.PhoneNumber" type="text" class="form-control" placeholder="### ####-####" />
+                    <ValidationMessage For="@(() => customer.PhoneNumber)" />       
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">@btnText</button>
+            </EditForm>
+        </div>
+    </div>
+    
+</div>
+
+<div class="@messageCssClass alert-dismissible alert-fixed position-fixed bottom-0" hidden="@hideMessage" role="alert">
+    <span>@message</span>
+    <a href="Customer/@IdNewCustomer" hidden="@hideLink">Edit the Customer</a>
+    <button type="button" class="btn-close" @onclick="ToggleMessage"></button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private AddCustomerDto customer = new AddCustomerDto();
+
+    private string message = string.Empty;
+    private string messageCssClass = string.Empty;
+    private string btnText = "Add the Customer";
+    private bool hideMessage = true;
+    private bool hideLink = true;
+
+    private int IdNewCustomer = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        hideMessage = true;
+        if (Id > 0)
+        {
+            await LoadCustomer();
+            btnText = "Edit the Customer";
+        }
+        else
+        {
+            customer = new AddCustomerDto();
+            btnText = "Add the Customer";
+        }
+    }
+
+    private async Task LoadCustomer()
+    {
+        var response = await CustomerService.GetCustomer(Id);
+
+        if (response.Success && response.Data!=null)
+        {
+            var updCustomer = response.Data;
+                       
+            customer = new AddCustomerDto
+            {
+                FirstName = updCustomer.FirstName,
+                LastName = updCustomer.LastName,
+                PhoneNumber = updCustomer.PhoneNumber
+            };
+        }
+        else
+        {
+            ShowMessage(false, response.Message) ;
+        }
+    }
+
+    private async Task HandleAddOrUpdateCustomer()
+    {
+        if (Id > 0)
+        { // Update
+            UpdateCustomerDto updCustomer = new UpdateCustomerDto
+            {
+                Id = this.Id,
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                PhoneNumber = customer.PhoneNumber
+            };
+
+            var response = await CustomerService.UpdateCustomer(updCustomer);
+            if (response.Success)
+                ShowMessage(true, "The Customer has been updated");
+            else
+                ShowMessage(false, response.Message);
+            hideLink = true;
+        }
+        else
+        {
+            var response = await CustomerService.AddCustomer(customer);
+            if (response.Success && response.Data!=null)
+            {
+                IdNewCustomer = response.Data.Id;
+                hideLink = false;
+                ShowMessage(true, "Customer added successfully.");
+            }
+            else
+            {
+                hideLink = true;
+                ShowMessage(false, response.Message);
+            }
+            hideMessage = false;
+        }    
+    }
+
+    private void ShowMessage(bool isValid, string Message)
+    {
+        if (isValid)
+        {
+            message = Message;
+            messageCssClass = "alert alert-success";
+        }
+        else
+        {
+            message = Message;
+            messageCssClass = "alert alert-danger";
+        }
+        hideMessage = false;
+    }
+
+    void BackTo()
+    {
+        Navigation.NavigateTo("categories");
+    }
+
+    private void Clear()
+    {
+        customer = new AddCustomerDto();
+    }
+
+    private void ToggleMessage()
+    {
+        hideMessage = true;
+        hideLink = true;
+        message = string.Empty;
+        messageCssClass = string.Empty;
+    }
+}

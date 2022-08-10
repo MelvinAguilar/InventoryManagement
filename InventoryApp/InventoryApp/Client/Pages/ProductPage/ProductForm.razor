@@ -1,0 +1,303 @@
+﻿@page "/product/"
+@page "/product/{id:int}"
+@inject NavigationManager Navigation
+@inject IProductService ProductService
+@inject ICategoryService CategoryService
+@attribute [Authorize]
+
+<PageTitle>Product Form</PageTitle>
+
+<div class="p-3 my-3 align-items-center text-white bg-blue-gradiant rounded shadow">
+    @if (Id > 0)
+    {
+        <h1 class="h3 mb-0 text-center">Edit Product</h1>
+    }
+    else
+    {
+        <h1 class="h3 mb-0 text-center">Add a new Product</h1>
+    }  
+</div>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="products">Product</a></li>
+            @if (Id > 0)
+            {
+                <li class="breadcrumb-item active" aria-current="page">Edit Product</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Add Product</li>
+            }
+        </ol>
+    </nav>
+    
+    <EditForm Model="product" OnValidSubmit="HandleAddOrUpdateProduct">
+        <DataAnnotationsValidator />
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-header-title h5">Product information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="name">Name</label>
+                        <InputText id="name" @bind-Value="product.Name" type="text" class="form-control" placeholder="Apple" />
+                        <ValidationMessage For="@(() => product.Name)" />       
+                    </div>
+                    <div class="mb-3">
+                        <label for="brand">Brand</label>
+                        <InputText id="brand" @bind-Value="product.Brand" type="text" class="form-control" placeholder="Apple" />
+                        <ValidationMessage For="@(() => product.Brand)" />       
+                    </div>
+                    <div class="mb-3">
+                        <label for="specification">Specifications</label>
+                        <InputTextArea id="specification" @bind-Value="product.Specification" type="text" class="form-control" placeholder="Red ..." />
+                        <ValidationMessage For="@(() => product.Specification)" />
+                    </div>                    
+                </div>
+            </div>
+
+            <div class="card my-4">
+                <div class="card-header">
+                    <h4 class="card-header-title h5">Image</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="image">Upload image</label>
+                        @*  @bind-Value="product.Image" *@
+                        <InputFile id="image" type="file" class="form-control" OnChange="OnFileChange" accept="image/png, image/jpeg" />
+                        <ValidationMessage For="@(() => product.Image)" />       
+                    </div>
+                    <div class="text-center">
+                        <img src="@imgUrl" class="img-fluid" alt="Product Image" style="max-height: 400px;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-header-title h5">Inventory and Price</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="price">Price</label>
+                        <InputNumber id="price" @bind-Value="product.Price" class="form-control" />
+                        <ValidationMessage For="@(() => product.Specification)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="stock">Stock</label>
+                        <InputNumber  id="stock" @bind-Value="product.Stock" class="form-control" />
+                        <ValidationMessage For="@(() => product.Stock)" />
+                    </div>
+                </div>
+            </div>
+            <div class="my-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-header-title h5">Category</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="category">Select an option</label>
+                            <InputSelect id="category" @bind-Value="product.IdCategory" class="form-control" >
+                                <option value="">Select a category</option>
+                                @foreach (var category in categories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </InputSelect>     
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row my-1 justify-content-end">
+                <div class="col-sm-auto">
+                    <button type="button" class="btn btn-default" @onclick="ReloadCategories">
+                        <i class="oi oi-reload"></i> Refresh categories
+                    </button>
+                    <button type="button" class="btn btn-default" @onclick="Clear">
+                        <i class="oi oi-trash"></i> Clear the form
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">@btnText</button>
+    </div>
+    </EditForm>
+</div>
+
+<div class="@messageCssClass alert-dismissible alert-fixed position-fixed bottom-0" hidden="@hideMessage" role="alert">
+    <span>@message</span>
+    <a href="Product/@IdNewProduct" hidden="@hideLink">Edit the Product</a>
+    <button type="button" class="btn-close" @onclick="ToggleMessage"></button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private AddProductDto product = new AddProductDto();
+    private List<GetCategoryDto> categories = new List<GetCategoryDto>();
+
+    private string imgUrl = string.Empty;
+    private string message = string.Empty;
+    private string messageCssClass = string.Empty;
+    private string btnText = "Add the product";
+    private bool hideMessage = true;
+    private bool hideLink = true;
+
+    private int IdNewProduct = 0;
+
+    protected override async Task OnInitializedAsync() => await ReloadCategories();
+
+    private async Task ReloadCategories()
+    {
+        var response = await CategoryService.GetCategories();
+
+        if (response.Success && response.Data!=null)
+        {
+            categories = response.Data;
+        }
+        else
+        {
+            message = response.Message;
+            messageCssClass = "alert-danger";
+            hideMessage = false;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        hideMessage = true;
+        if (Id > 0)
+        {
+            await LoadProduct();
+            btnText = "Edit the Product";
+        }
+        else
+        {
+            product = new AddProductDto();
+            btnText = "Add the Product";
+        }
+    }
+
+    private async Task LoadProduct()
+    {
+        var response = await ProductService.GetProduct(Id);
+
+        if (response.Success && response.Data!=null)
+        {
+            var updProduct = response.Data;
+
+            product = new AddProductDto
+            {
+                Name = updProduct.Name,
+                Brand = updProduct.Brand,
+                Specification = updProduct.Specification,
+                Price = updProduct.Price,
+                Stock = updProduct.Stock,
+                IdCategory = updProduct.IdCategory
+            };
+        }
+        else
+        {
+            ShowMessage(false, response.Message) ;
+        }
+    }
+
+    private async Task HandleAddOrUpdateProduct()
+    {
+        if (imgUrl == string.Empty || imgUrl == null)
+        {
+            ShowMessage(false, "You must upload an image");
+            return;
+        }
+
+        if (Id > 0)
+        {
+            UpdateProductDto updProduct = new UpdateProductDto
+            {
+                Id = this.Id,
+                Name = product.Name,
+                Brand = product.Brand,
+                Specification = product.Specification,
+                Price = product.Price,
+                Stock = product.Stock,
+                IdCategory = product.IdCategory
+            };
+
+            var response = await ProductService.UpdateProduct(updProduct);
+            if (response.Success)
+                ShowMessage(true, "The Product has been updated");
+            else
+                ShowMessage(false, response.Message);
+            hideLink = true;
+        }
+        else
+        {
+            var response = await ProductService.AddProduct(product);
+            if (response.Success && response.Data!=null)
+            {
+                IdNewProduct = response.Data.Id;
+                hideLink = false;
+                ShowMessage(true, "Product added successfully.");
+            }
+            else
+            {
+                hideLink = true;
+                ShowMessage(false, response.Message);
+            }
+            hideMessage = false;
+        }    
+    }
+
+    private void ShowMessage(bool isValid, string Message)
+    {
+        if (isValid)
+        {
+            message = Message;
+            messageCssClass = "alert alert-success";
+        }
+        else
+        {
+            message = Message;
+            messageCssClass = "alert alert-danger";
+        }
+        hideMessage = false;
+    }
+
+    void BackTo()
+    {
+        Navigation.NavigateTo("products");
+    }
+
+    private void Clear()
+    {   
+        product = new AddProductDto();
+    }
+
+    private void ToggleMessage()
+    {
+        hideMessage = true;
+        hideLink = true;
+        message = string.Empty;
+        messageCssClass = string.Empty;
+    }
+
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        var format = "image/png";
+        var resizedImage = await e.File.RequestImageFileAsync(format, 400, 400);
+        var buffer = new byte[resizedImage.Size];
+        await resizedImage.OpenReadStream().ReadAsync(buffer);
+        var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+        imgUrl = imageData;
+
+        product.Image = buffer;
+    }
+}

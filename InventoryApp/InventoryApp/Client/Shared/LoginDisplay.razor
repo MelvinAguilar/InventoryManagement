@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
-<!-- inject SignOutSessionStateManager SignOutSessionStateManager -->
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <AuthorizeView>
     <Authorized>
@@ -13,13 +14,8 @@
 
 @code {
     private async Task BeginSignOut(MouseEventArgs args) {
-        //args.preventDefault();
-        //await SignOutSessionStateManager.SignOutAsync();
-        Navigation.NavigateTo("/");
-        //context.SignOut()
+        await LocalStorage.RemoveItemAsync("authToken");
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        Navigation.NavigateTo("/login");
     }
-    /*protected override void OnInitialized()
-    {
-        Navigation.NavigateTo("/");
-    }*/
 }

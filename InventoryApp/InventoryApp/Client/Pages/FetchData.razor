@@ -1,6 +1,8 @@
 ﻿@page "/fetchdata"
 @using InventoryApp.Shared
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -43,5 +45,11 @@ else
     protected override async Task OnInitializedAsync()
     {
         forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+       /* try {
+            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        } catch (AccessTokenNotAvailableException ex) {
+            ex.Redirect();
+        }*/
+        
     }
 }

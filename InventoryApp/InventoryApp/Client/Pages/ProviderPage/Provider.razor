@@ -1,0 +1,116 @@
+﻿@page "/providers"
+@inject NavigationManager Navigation
+@inject IProviderService ProviderService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Provider</PageTitle>
+
+<PageTitleDiv Title="Providers" 
+    Message="Add a provider" 
+    NavigateTo="@AddProvider" />
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Provider</li>
+        </ol>
+    </nav>
+    
+    @if (providers == null) 
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0">Providers</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>Address</th>
+                        <th>Description</th>
+                        <th style="width: 6.7rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody style="overflow-wrap: anywhere;">
+                    @foreach (var provider in providers)
+                    {
+                        <tr>
+                            <td>@provider.Name</td>
+                            <td>@provider.PhoneNumber</td>
+                            <td>@provider.Address</td>
+                            <td>@provider.Description</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdateProvider(provider.Id))">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => DeleteProvider(provider.Id))">
+                                    <i class="oi oi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            --
+        </div>
+    }
+</div>
+
+
+@code {
+    private List<GetProviderDto>? providers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAll();
+    }
+
+    void AddProvider()
+    {
+        Navigation.NavigateTo("Provider/");
+    }
+
+    void UpdateProvider(int Id)
+    {
+        Navigation.NavigateTo($"Provider/{Id}");
+    }
+
+    private async Task GetAll()
+    {
+        var result = await ProviderService.GetProviders();
+        if (result.Success)
+            providers = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+
+    async void DeleteProvider(int Id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to delete this provider?");
+        if (confirmed)
+        {
+            var result = await ProviderService.DeleteProvider(Id);
+            if (result.Success)
+            {
+                await GetAll();
+                await JSRuntime.InvokeVoidAsync("alert", "Provider deleted");
+            }
+            else
+                await JSRuntime.InvokeVoidAsync("alert", result.Message);
+        }
+    }
+}

@@ -1,0 +1,113 @@
+﻿@page "/categories"
+@inject NavigationManager Navigation
+@inject ICategoryService CategoryService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Category</PageTitle>
+
+<PageTitleDiv Title="Categories" 
+    Message="Add a category" 
+    NavigateTo="@AddCategory" />
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Category</li>
+        </ol>
+    </nav>
+    
+    @if (categories == null) 
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0">Categories</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th style="width: 6.7rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody style="overflow-wrap: anywhere;">
+                    @foreach (var category in categories)
+                    {
+                        <tr>
+                            <td>@category.Name</td>
+                            <td>@category.Description</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdateCategory(category.Id))">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => DeleteCategory(category.Id))">
+                                    <i class="oi oi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            --
+        </div>
+    }
+</div>
+
+
+
+@code {
+    private List<GetCategoryDto>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAll();
+    }
+
+    void AddCategory()
+    {
+        Navigation.NavigateTo("category/");
+    }
+
+    void UpdateCategory(int Id)
+    {
+        Navigation.NavigateTo($"category/{Id}");
+    }
+
+    private async Task GetAll()
+    {
+        var result = await CategoryService.GetCategories();
+        if (result.Success)
+            categories = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+
+    async void DeleteCategory(int Id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to delete this category?");
+        if (confirmed)
+        {
+            var result = await CategoryService.DeleteCategory(Id);
+            if (result.Success)
+            {
+                await GetAll();
+                await JSRuntime.InvokeVoidAsync("alert", "Category deleted");
+            }
+            else
+                await JSRuntime.InvokeVoidAsync("alert", result.Message);
+        }
+    }
+}

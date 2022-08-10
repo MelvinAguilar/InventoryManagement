@@ -1,0 +1,114 @@
+﻿@page "/customers"
+@inject NavigationManager Navigation
+@inject ICustomerService CustomerService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Customer</PageTitle>
+
+<PageTitleDiv Title="Customers" 
+    Message="Add a customer" 
+    NavigateTo="@AddCustomer" />
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Customer</li>
+        </ol>
+    </nav>
+    
+    @if (customers == null) 
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0">Customers</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone Number</th>
+                        <th style="width: 6.7rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody style="overflow-wrap: anywhere;">
+                    @foreach (var customer in customers)
+                    {
+                        <tr>
+                            <td>@customer.FirstName</td>
+                            <td>@customer.LastName</td>
+                            <td>@customer.PhoneNumber</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdateCustomer(customer.Id))">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => DeleteCustomer(customer.Id))">
+                                    <i class="oi oi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            --
+        </div>
+    }
+</div>
+
+
+@code {
+    private List<GetCustomerDto>? customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAll();
+    }
+
+    void AddCustomer()
+    {
+        Navigation.NavigateTo("Customer/");
+    }
+
+    void UpdateCustomer(int Id)
+    {
+        Navigation.NavigateTo($"Customer/{Id}");
+    }
+
+    private async Task GetAll()
+    {
+        var result = await CustomerService.GetCustomers();
+        if (result.Success)
+            customers = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+
+    async void DeleteCustomer(int Id)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to delete this customer?");
+        if (confirmed)
+        {
+            var result = await CustomerService.DeleteCustomer(Id);
+            if (result.Success)
+            {
+                await GetAll();
+                await JSRuntime.InvokeVoidAsync("alert", "Customer deleted");
+            }
+            else
+                await JSRuntime.InvokeVoidAsync("alert", result.Message);
+        }
+    }
+}

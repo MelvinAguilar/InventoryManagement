@@ -1,0 +1,189 @@
+﻿@page "/category/"
+@page "/category/{id:int}"
+@inject NavigationManager Navigation
+@inject ICategoryService CategoryService
+@attribute [Authorize]
+
+<PageTitle>Category Form</PageTitle>
+
+<div class="p-3 my-3 align-items-center text-white bg-blue-gradiant rounded shadow">
+    @if (Id > 0)
+    {
+        <h1 class="h3 mb-0 text-center">Edit Category</h1>
+    }
+    else
+    {
+        <h1 class="h3 mb-0 text-center">Add a new Category</h1>
+    }  
+</div>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="categories">Category</a></li>
+            @if (Id > 0)
+            {
+                <li class="breadcrumb-item active" aria-current="page">Edit Category</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Add Category</li>
+            }
+        </ol>
+    </nav>
+    <div class="row my-1 justify-content-end">
+        <div class="col-sm-auto">
+            <button class="btn btn-default" @onclick="Clear">
+                <i class="oi oi-trash"></i> Clear the form
+            </button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-header-title h5">Category information</h4>
+        </div>
+        <div class="card-body">
+            <EditForm Model="category" OnValidSubmit="HandleAddOrUpdateCategory">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label for="name">Name</label>
+                    <InputText id="name" @bind-Value="category.Name" type="text" class="form-control" placeholder="Food" />
+                    <ValidationMessage For="@(() => category.Name)" />       
+                </div>
+                <div class="mb-3">
+                    <label for="description">Description</label>
+                    <InputTextArea id="description" @bind-Value="category.Description" type="text" class="form-control" placeholder="Some descriptions" />
+                    <ValidationMessage For="@(() => category.Description)" />
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">@btnText</button>
+            </EditForm>
+        </div>
+    </div>
+    
+</div>
+
+<div class="@messageCssClass alert-dismissible alert-fixed position-fixed bottom-0" hidden="@hideMessage" role="alert">
+    <span>@message</span>
+    <a href="category/@IdNewCategory" hidden="@hideLink">Edit the category</a>
+    <button type="button" class="btn-close" @onclick="ToggleMessage"></button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private AddCategoryDto category = new AddCategoryDto();
+
+    private string message = string.Empty;
+    private string messageCssClass = string.Empty;
+    private string btnText = "Add the category";
+    private bool hideMessage = true;
+    private bool hideLink = true;
+
+    private int IdNewCategory = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        hideMessage = true;
+        if (Id > 0)
+        {
+            await LoadCategory();
+            btnText = "Edit the category";
+        }
+        else
+        {
+            category = new AddCategoryDto();
+            btnText = "Add the category";
+        }
+    }
+
+    private async Task LoadCategory()
+    {
+        var response = await CategoryService.GetCategory(Id);
+
+        if (response.Success && response.Data!=null)
+        {
+            var updCategory = response.Data;
+                       
+            category = new AddCategoryDto
+            {
+                Name = updCategory.Name,
+                Description = updCategory.Description
+            };
+        }
+        else
+        {
+            ShowMessage(false, response.Message) ;
+        }
+    }
+
+    private async Task HandleAddOrUpdateCategory()
+    {
+        if (Id > 0)
+        { // Update
+            UpdateCategoryDto updCategory = new UpdateCategoryDto
+            {
+                Id = this.Id,
+                Name = category.Name,
+                Description = category.Description
+            };
+
+            var response = await CategoryService.UpdateCategory(updCategory);
+            if (response.Success)
+                ShowMessage(true, "The category has been updated");
+            else
+                ShowMessage(false, response.Message);
+            hideLink = true;
+        }
+        else
+        {
+            var response = await CategoryService.AddCategory(category);
+            if (response.Success && response.Data!=null)
+            {
+                IdNewCategory = response.Data.Id;
+                hideLink = false;
+                ShowMessage(true, "Category added successfully.");
+            }
+            else
+            {
+                hideLink = true;
+                ShowMessage(false, response.Message);
+            }
+            hideMessage = false;
+        }    
+    }
+
+    private void ShowMessage(bool isValid, string Message)
+    {
+        if (isValid)
+        {
+            message = Message;
+            messageCssClass = "alert alert-success";
+        }
+        else
+        {
+            message = Message;
+            messageCssClass = "alert alert-danger";
+        }
+        hideMessage = false;
+    }
+
+    void BackTo()
+    {
+        Navigation.NavigateTo("categories");
+    }
+
+    private void Clear()
+    {
+        category = new AddCategoryDto();
+    }
+
+    private void ToggleMessage()
+    {
+        hideMessage = true;
+        hideLink = true;
+        message = string.Empty;
+        messageCssClass = string.Empty;
+    }
+}

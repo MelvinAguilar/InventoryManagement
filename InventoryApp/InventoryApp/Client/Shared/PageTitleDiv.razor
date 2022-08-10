@@ -1,0 +1,28 @@
+﻿<div class="p-3 my-3 text-white bg-blue-gradiant rounded shadow">
+    <div class="row align-items-center">
+        <div class="col-sm">
+            <h1 class="h3 mb-0">@Title</h1>
+        </div>
+        <div class="col-sm-auto">
+            <button class="btn btn-light" @onclick="@InvokeNavigateTo">
+                <i class="oi oi-plus"></i>  @Message
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+    [Parameter]
+    public Action NavigateTo { get; set; } = new Action(() => { });
+
+    private void InvokeNavigateTo()
+    {
+        NavigateTo?.Invoke();
+    }
+
+    //background-image: linear-gradient(155deg, #21D4FD 0%, #b721ff 70%);
+}
