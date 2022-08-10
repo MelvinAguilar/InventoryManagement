@@ -36,98 +36,96 @@
     
     <EditForm Model="product" OnValidSubmit="HandleAddOrUpdateProduct">
         <DataAnnotationsValidator />
-    <div class="row">
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-header-title h5">Product information</h4>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="name">Name</label>
-                        <InputText id="name" @bind-Value="product.Name" type="text" class="form-control" placeholder="Apple" />
-                        <ValidationMessage For="@(() => product.Name)" />       
-                    </div>
-                    <div class="mb-3">
-                        <label for="brand">Brand</label>
-                        <InputText id="brand" @bind-Value="product.Brand" type="text" class="form-control" placeholder="Apple" />
-                        <ValidationMessage For="@(() => product.Brand)" />       
-                    </div>
-                    <div class="mb-3">
-                        <label for="specification">Specifications</label>
-                        <InputTextArea id="specification" @bind-Value="product.Specification" type="text" class="form-control" placeholder="Red ..." />
-                        <ValidationMessage For="@(() => product.Specification)" />
-                    </div>                    
-                </div>
-            </div>
-
-            <div class="card my-4">
-                <div class="card-header">
-                    <h4 class="card-header-title h5">Image</h4>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="image">Upload image</label>
-                        @*  @bind-Value="product.Image" *@
-                        <InputFile id="image" type="file" class="form-control" OnChange="OnFileChange" accept="image/png, image/jpeg" />
-                        <ValidationMessage For="@(() => product.Image)" />       
-                    </div>
-                    <div class="text-center">
-                        <img src="@imgUrl" class="img-fluid" alt="Product Image" style="max-height: 400px;" />
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-5">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-header-title h5">Inventory and Price</h4>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="price">Price</label>
-                        <InputNumber id="price" @bind-Value="product.Price" class="form-control" />
-                        <ValidationMessage For="@(() => product.Specification)" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="stock">Stock</label>
-                        <InputNumber  id="stock" @bind-Value="product.Stock" class="form-control" />
-                        <ValidationMessage For="@(() => product.Stock)" />
-                    </div>
-                </div>
-            </div>
-            <div class="my-3">
+        <div class="row">
+            <div class="col-lg-7">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-header-title h5">Category</h4>
+                        <h4 class="card-header-title h5">Product information</h4>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="category">Select an option</label>
-                            <InputSelect id="category" @bind-Value="product.IdCategory" class="form-control" >
-                                <option value="">Select a category</option>
-                                @foreach (var category in categories)
-                                {
-                                    <option value="@category.Id">@category.Name</option>
-                                }
-                            </InputSelect>     
+                            <label for="name">Name</label>
+                            <InputText id="name" @bind-Value="product.Name" type="text" class="form-control" placeholder="Apple" />
+                            <ValidationMessage For="@(() => product.Name)" />       
+                        </div>
+                        <div class="mb-3">
+                            <label for="brand">Brand</label>
+                            <InputText id="brand" @bind-Value="product.Brand" type="text" class="form-control" placeholder="Apple" />
+                            <ValidationMessage For="@(() => product.Brand)" />       
+                        </div>
+                        <div class="mb-3">
+                            <label for="specification">Specifications</label>
+                            <InputTextArea id="specification" @bind-Value="product.Specification" type="text" class="form-control" placeholder="Red ..." />
+                            <ValidationMessage For="@(() => product.Specification)" />
+                        </div>                    
+                    </div>
+                </div>
+                <div class="card my-4">
+                    <div class="card-header">
+                        <h4 class="card-header-title h5">Image</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="image">Upload image</label>
+                            <InputFile id="image" @bind-Value="product.Image" type="file" class="form-control" OnChange="OnFileChange" accept="image/png, image/jpeg" />
+                            <ValidationMessage For="@(() => product.Image)" />       
+                        </div>
+                        <div class="text-center">
+                            <img src="@imgUrl" class="img-fluid" alt="Product Image" style="max-height: 400px;" />
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row my-1 justify-content-end">
-                <div class="col-sm-auto">
-                    <button type="button" class="btn btn-default" @onclick="ReloadCategories">
-                        <i class="oi oi-reload"></i> Refresh categories
-                    </button>
-                    <button type="button" class="btn btn-default" @onclick="Clear">
-                        <i class="oi oi-trash"></i> Clear the form
-                    </button>
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-header-title h5">Inventory and Price</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="price">Price</label>
+                            <InputNumber id="price" @bind-Value="product.Price" class="form-control" />
+                            <ValidationMessage For="@(() => product.Price)" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="stock">Stock</label>
+                            <InputNumber  id="stock" @bind-Value="product.Stock" class="form-control" />
+                            <ValidationMessage For="@(() => product.Stock)" />
+                        </div>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-header-title h5">Category</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="category">Select an option</label>
+                                <InputSelect id="category" @bind-Value="product.IdCategory" class="form-control" >
+                                    <option value="0" selected disabled hidden>Select a category</option>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id">@category.Name</option>
+                                    }
+                                </InputSelect>     
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row my-1 justify-content-end">
+                    <div class="col-sm-auto">
+                        <button type="button" class="btn btn-default" @onclick="ReloadCategories">
+                            <i class="oi oi-reload"></i> Refresh categories
+                        </button>
+                        <button type="button" class="btn btn-default" @onclick="Clear">
+                            <i class="oi oi-trash"></i> Clear the form
+                        </button>
+                    </div>
                 </div>
             </div>
+            <button type="submit" class="btn btn-primary mt-2">@btnText</button>
         </div>
-        <button type="submit" class="btn btn-primary mt-2">@btnText</button>
-    </div>
     </EditForm>
 </div>
 
