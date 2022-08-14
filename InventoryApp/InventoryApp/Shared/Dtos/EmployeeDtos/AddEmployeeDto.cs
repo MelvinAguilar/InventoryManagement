@@ -31,7 +31,7 @@ namespace InventoryApp.Shared.Dtos.EmployeeDtos
         public string PhoneNumber { get; set; } = null!;
         [Required]
         [Column("avatar")]
-        public byte[]? Avatar { get; set; }
+        public string Avatar { get; set; } = null!;
         [Required, MinLength(8, ErrorMessage = "Password must be at least 8 characters long.")]
         [NotMapped]
         [Column("password")]

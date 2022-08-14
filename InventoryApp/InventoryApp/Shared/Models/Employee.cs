@@ -38,7 +38,7 @@ namespace InventoryApp.Shared.Models
         [Unicode(false)]
         public string PhoneNumber { get; set; } = null!;
         [Column("avatar")]
-        public byte[]? Avatar { get; set; }
+        public string? Avatar { get; set; }
         [Column("passwordHash")]
         public byte[] PasswordHash { get; set; } = null!;
         [Column("passwordSalt")]

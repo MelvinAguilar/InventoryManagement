@@ -1,0 +1,108 @@
+﻿@page "/purchases"
+@inject NavigationManager Navigation
+@inject IPurchaseService PurchaseService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Purchase</PageTitle>
+
+<PageTitleDiv Title="Purchases" 
+    Message="Add a Purchase" 
+    NavigateTo="@AddPurchase" />
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Purchase</li>
+        </ol>
+    </nav>
+    
+    @if (purchases == null) 
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0">Purchases</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 5.7rem;">Order</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Payment</th>
+                        <th>Payment Status</th>
+                        <th>Employee</th>
+                        <th style="width: 6.7rem;">Action</th>
+                    </tr>
+                </thead>
+                <tbody style="overflow-wrap: anywhere;">
+                    @foreach (var purchase in purchases)
+                    {
+                        <tr>
+                            <td>#@purchase.Id</td>
+                            <td>@purchase.DatePurchased</td>
+                            <td>@purchase.IdCustomerNavigation.FirstName</td>
+                            <td>$@purchase.NetAmount</td>
+                            @if (purchase.NetAmount == purchase.Payment)
+                            {
+                                <td><span class="badge bg-success">Paid</span></td>
+                            }
+                            else
+                            {
+                                <td><span class="badge bg-warning">Unpaid</span></td>
+                            }
+                            <td>@purchase.IdEmployeeNavigation.FirstName</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdatePurchase(purchase.Id))">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            --
+        </div>
+    }
+</div>
+
+
+
+@code {
+    private List<GetPurchaseDto>? purchases;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAll();
+    }
+
+    void AddPurchase()
+    {
+        Navigation.NavigateTo("Purchase/");
+    }
+
+    void UpdatePurchase(int Id)
+    {
+        Navigation.NavigateTo($"Purchase/{Id}");
+    }
+
+    private async Task GetAll()
+    {
+        var result = await PurchaseService.GetPurchases();
+        if (result.Success)
+            purchases = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+}

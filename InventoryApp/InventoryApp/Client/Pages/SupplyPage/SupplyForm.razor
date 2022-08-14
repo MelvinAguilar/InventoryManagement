@@ -1,0 +1,384 @@
+﻿@page "/supply/"
+@page "/supply/{id:int}"
+@inject NavigationManager Navigation
+@inject ISupplyService SupplyService
+@inject IProviderService ProviderService
+@inject IAuthService AuthService
+@attribute [Authorize]
+
+<PageTitle>Supply Form</PageTitle>
+
+<ProductList Title="Product List" />
+
+<div class="p-3 my-3 align-items-center text-white bg-blue-gradiant rounded shadow">
+    @if (Id > 0)
+    {
+        <h1 class="h3 mb-0 text-center">Edit Supply</h1>
+    }
+    else
+    {
+        <h1 class="h3 mb-0 text-center">Add a new Supply</h1>
+    }  
+</div>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <!-- page location -->
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="supplies">Supply</a></li>
+            @if (Id > 0)
+            {
+                <li class="breadcrumb-item active" aria-current="page">Edit Supply</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Add Supply</li>
+            }
+        </ol>
+    </nav>
+    
+    @if (isAuthorized)
+    {
+        <EditForm Model="supply" OnValidSubmit="HandleAddOrUpdateSupply">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-xl-7 pe-xl-1">
+                    <!-- Supply details card -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h4 class="card-header-title h5">Supply Details</h4>
+                        </div>
+                        <div class="card-body table-responsive">
+                            @if (supplyDetails == null)
+                            {
+                                <p>Loading . . . </p>
+                            }
+                            else
+                            {
+                                @foreach (var detail in supplyDetails)
+                                {
+                                    <div class="d-flex p-2">
+                                        <div class="flex-shrink-0 align-self-center">
+                                            <img src="@detail.IdProductNavigation.Image" class="avatar" alt="Image" />
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <div class="row">
+                                                <div class="col-lg-12 mb-4 mb-sm-1">
+                                                    <p class="fw-bold mb-0">@detail.IdProductNavigation.Name 
+                                                        <span class="badge bg-secondary">@detail.IdProductNavigation.Stock in stock</span>
+                                                    </p>
+                                                    <span class="d-block">Brand: <em>@detail.IdProductNavigation.Brand</em></span>
+                                                    <span>Details: <em>@detail.IdProductNavigation.Specification</em></span>
+                                                </div>
+                                                <div class="col-12 col-sm-4 align-self-center">
+                                                    <p class="fw-bold mb-0">$@detail.IdProductNavigation.Price</p>
+                                                </div>
+                                                <div class="col-12 col-sm-4 align-self-center">
+                                                    <InputNumber id="stock" @bind-Value="detail.Quantity" class="form-control" @oninput="@((e) => VerifyQuantity(detail, (e.Value==null)?string.Empty:e.Value.ToString()))" />
+                                                    <ValidationMessage For="@(() => detail.Quantity)" />
+                                                </div>
+                                                <div class="col-12 col-sm-4 align-self-center text-sm-end">
+                                                    <span>$@(detail.Quantity*detail.IdProductNavigation.Price)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="my-4">
+                                }
+                            }   
+                            <button type="button" class="btn btn-white btn-white-hover w-100" @onclick="() => Modal.Open()">
+                                <i class="oi oi-plus"></i>  Add a product to supply
+                            </button> 
+                        </div>
+                    </div>
+                    <!-- End Supply details card -->
+                </div>
+                <div class="col-xl-5">
+                    <!-- Provider details card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-header-title h5">Provider Information</h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Id == 0)
+                            {
+                                <div>
+                                    <InputSelect id="provider" @bind-Value="supply.IdProvider" class="form-control" >
+                                        <option value="0" selected disabled hidden>Select a provider</option>
+                                        @foreach (var provider in providers)
+                                        {
+                                            <option value="@provider.Id">@provider.Name</option>
+                                        }
+                                    </InputSelect>
+                                    <hr class="my-3" />
+                                    <p class="fw-bold mb-0">Contact:</p>
+                                    <p>@GetProvider(supply.IdProvider).PhoneNumber</p>
+                                    <hr class="my-3" />
+                                    <p class="fw-bold mb-0">Address:</p>
+                                    <p class="mb-0">@GetProvider(supply.IdProvider).Address</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning mb-0" role="alert">
+                                    <strong>Warning!</strong> You can't change the provider of a supply.
+                                </div>       
+                            }
+                        </div>
+                    </div>
+                    <!-- End Provider details card -->
+                    <!-- Supply information card -->
+                    <div class="my-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-header-title h5">Supply Information</h4>
+                            </div>
+                            <div class="card-body">
+                                <label for="paid">Amount paid: </label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber id="paid" @bind-Value="supply.Payment" class="form-control" />
+                                    <ValidationMessage For="@(() => supply.Payment)" /> 
+                                </div>
+                                <div>
+                                    <p>Total: <span class="fw-bold text-end">$@GetTotal()</span></p>
+                                    <p>Payment Status: </p>
+                                    @if (@supply.Payment > @total)
+                                    {
+                                        <p class="text-danger">The amount paid is greater than the total</p>
+                                    } 
+                                    else if (@supply.Payment < @total)
+                                    {
+                                        <p class="text-danger">The amount paid is less than the total</p>
+                                    } 
+                                    else
+                                    {
+                                        <span>Amount paid is equal to the total</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Supply information card -->
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary fw-bold mt-2">@btnText</button>
+                </div>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>You are not authorized to access this page</strong>
+            <p>You must be an administrator to edit a supply</p>
+            <p>Please <a href="/login">login</a> as an administrator</p>
+        </div>
+    }    
+</div>
+
+<!-- Alert -->
+<div class="@messageCssClass alert-dismissible alert-fixed position-fixed bottom-0" hidden="@hideMessage" role="alert">
+    <span>@message</span>
+    <a href="Supply/@IdNewSupply" hidden="@hideLink">Edit the Supply</a>
+    <button type="button" class="btn-close" @onclick="ToggleMessage"></button>
+</div>
+
+<!-- Modal for adding a product to supply -->
+<ProductList @ref="Modal"
+        Title="Select the products" 
+        OnSave="@OnConfirm" />
+@* <CascadingValue Value="@supplyDetails"></CascadingValue> *@
+
+
+
+@code {
+    private ProductList Modal { get; set; } = new ProductList();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private AddSupplyDto supply = new AddSupplyDto();
+    private List<GetProviderDto> providers = new List<GetProviderDto>();
+    private List<GetSupplyDetailDto> supplyDetails = new List<GetSupplyDetailDto>();
+
+    private decimal total = 0;
+    
+    private string message = string.Empty;
+    private string messageCssClass = string.Empty;
+    private string btnText = "Add the Supply";
+    private bool hideMessage = true;
+    private bool hideLink = true;
+
+    private int IdNewSupply = 0;
+    private bool isAuthorized = true;
+
+    protected override async Task OnInitializedAsync() => await ReloadProviders();
+
+    private async Task ReloadProviders()
+    {
+        var response = await ProviderService.GetProviders();
+
+        if (response.Success && response.Data!=null)
+        {
+            providers = response.Data;
+        }
+        else
+        {
+            message = response.Message;
+            messageCssClass = "alert-danger";
+            hideMessage = false;
+        }
+    }
+
+    protected void OnConfirm(List<GetSupplyDetailDto> supplyDetails)
+    {
+        this.supplyDetails = supplyDetails;
+        this.total = GetTotal();
+        StateHasChanged();
+    }
+        
+    protected override async Task OnParametersSetAsync()
+    {
+        hideMessage = true;
+        if (Id > 0)
+        {
+            bool isAdmin = await AuthService.IsInRoleAdmin("Administrator");
+            if (!isAdmin)
+            {
+                isAuthorized = false;
+                return;
+            }
+
+            await LoadSupply();
+            btnText = "Edit the Supply";
+        }
+        else
+        {
+            supply = new AddSupplyDto();
+            btnText = "Add the Supply";
+        }
+    }
+
+    private async Task LoadSupply()
+    {
+        var response = await SupplyService.GetSupply(Id);
+
+        if (response.Success && response.Data!=null)
+        {
+            var updSupply = response.Data;
+            supply = new AddSupplyDto
+            {
+                IdProvider = updSupply.IdProvider,
+                TotalAmount = updSupply.TotalAmount,
+                Payment = updSupply.Payment,
+            };
+            supplyDetails = updSupply.SupplyDetails.ToList();
+        }
+        else
+        {
+            ShowMessage(false, response.Message) ;
+        }
+    }
+
+    private async Task HandleAddOrUpdateSupply()
+    {
+        if (Id > 0)
+        {
+            UpdateSupplyDto updSupply = new UpdateSupplyDto
+            {
+                Id = this.Id,
+                //IdProvider = updSupply.IdProvider,
+                TotalAmount = total,
+                Payment = supply.Payment,
+                SupplyDetails = new List<UpdateSupplyDetailDto>()
+            };
+            
+            updSupply.SupplyDetails = supplyDetails.Select(x => new UpdateSupplyDetailDto
+            {
+                IdProduct = x.IdProduct,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList();
+
+            var response = await SupplyService.UpdateSupply(updSupply);
+            if (response.Success)
+                ShowMessage(true, "The Supply has been updated");
+            else
+                ShowMessage(false, response.Message);
+            hideLink = true;
+        }
+        else
+        {
+            supply.SupplyDetails = supplyDetails.Select(x => new AddSupplyDetailDto
+            {
+                IdProduct = x.IdProduct,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList();
+
+            var response = await SupplyService.AddSupply(supply);
+            if (response.Success && response.Data!=null)
+            {
+                IdNewSupply = response.Data.Id;
+                hideLink = false;
+                ShowMessage(true, "Supply added successfully.");
+            }
+            else
+            {
+                hideLink = true;
+                ShowMessage(false, response.Message);
+            }
+            hideMessage = false;
+        }
+    }
+
+    private void ShowMessage(bool isValid, string Message)
+    {
+        if (isValid)
+        {
+            message = Message;
+            messageCssClass = "alert alert-success";
+        }
+        else
+        {
+            message = Message;
+            messageCssClass = "alert alert-danger";
+        }
+        hideMessage = false;
+    }
+
+    private void ToggleMessage()
+    {
+        hideMessage = true;
+        hideLink = true;
+        message = string.Empty;
+        messageCssClass = string.Empty;
+    }
+
+    private decimal GetTotal()
+    {
+        total = supplyDetails.Sum(x => x.UnitPrice * x.Quantity);
+        return total;
+    }
+
+    private GetProviderDto GetProvider(int id)
+    {
+        var provider = providers.FirstOrDefault(x => x.Id == id);
+        return (provider!=null) ? provider : new GetProviderDto();
+    }
+    
+    private void VerifyQuantity(GetSupplyDetailDto detail, string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            detail.Quantity = 0;
+            return;
+        }
+
+        int.TryParse(value, out var quantity);
+        if (quantity == 0)
+            supplyDetails.Remove(detail);
+    }
+}

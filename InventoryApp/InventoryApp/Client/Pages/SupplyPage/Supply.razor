@@ -1,0 +1,108 @@
+﻿@page "/supplies"
+@inject NavigationManager Navigation
+@inject ISupplyService SupplyService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Supply</PageTitle>
+
+<PageTitleDiv Title="Supplies" 
+    Message="Add a Supply" 
+    NavigateTo="@AddSupply" />
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Supply</li>
+        </ol>
+    </nav>
+    
+    @if (supplies == null) 
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0">Supplies</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 5.7rem;">Order</th>
+                        <th>Date</th>
+                        <th>Provider</th>
+                        <th>Payment</th>
+                        <th>Payment Status</th>
+                        <th>Employee</th>
+                        <th style="width: 6.7rem;">Action</th>
+                    </tr>
+                </thead>
+                <tbody style="overflow-wrap: anywhere;">
+                    @foreach (var supply in supplies)
+                    {
+                        <tr>
+                            <td>#@supply.Id</td>
+                            <td>@supply.DateSupplied</td>
+                            <td>@supply.IdProviderNavigation.Name</td>
+                            <td>$@supply.TotalAmount</td>
+                            @if (supply.TotalAmount == supply.Payment)
+                            {
+                                <td><span class="badge bg-success">Paid</span></td>
+                            }
+                            else
+                            {
+                                <td><span class="badge bg-warning">Unpaid</span></td>
+                            }
+                            <td>@supply.IdEmployeeNavigation.FirstName</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdateSupply(supply.Id))">
+                                    <i class="oi oi-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            --
+        </div>
+    }
+</div>
+
+
+
+@code {
+    private List<GetSupplyDto>? supplies;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAll();
+    }
+
+    void AddSupply()
+    {
+        Navigation.NavigateTo("Supply/");
+    }
+
+    void UpdateSupply(int Id)
+    {
+        Navigation.NavigateTo($"Supply/{Id}");
+    }
+
+    private async Task GetAll()
+    {
+        var result = await SupplyService.GetSupplies();
+        if (result.Success)
+            supplies = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+}

@@ -36,7 +36,7 @@ namespace InventoryApp.Shared.Models
         [Column("price", TypeName = "money")]
         public decimal Price { get; set; }
         [Column("image")]
-        public byte[]? Image { get; set; }
+        public string? Image { get; set; }
         [Column("date_created", TypeName = "datetime")]
         public DateTime DateCreated { get; set; }
         [Column("date_modified", TypeName = "datetime")]

@@ -1,0 +1,436 @@
+﻿@page "/purchase/"
+@page "/purchase/{id:int}"
+@inject NavigationManager Navigation
+@inject IPurchaseService PurchaseService
+@inject ICustomerService CustomerService
+@inject IAuthService AuthService
+@attribute [Authorize]
+
+<PageTitle>Purchase Form</PageTitle>
+
+<ProductList Title="Product List" />
+
+<div class="p-3 my-3 align-items-center text-white bg-blue-gradiant rounded shadow">
+    @if (Id > 0)
+    {
+        <h1 class="h3 mb-0 text-center">Edit Purchase</h1>
+    }
+    else
+    {
+        <h1 class="h3 mb-0 text-center">Add a new Purchase</h1>
+    }  
+</div>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <!-- page location -->
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="purchases">Purchase</a></li>
+            @if (Id > 0)
+            {
+                <li class="breadcrumb-item active" aria-current="page">Edit Purchase</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Add Purchase</li>
+            }
+        </ol>
+    </nav>
+    
+    @if (isAuthorized)
+    {
+        <EditForm Model="purchase" OnValidSubmit="HandleAddOrUpdatePurchase">
+            <DataAnnotationsValidator />
+            <div class="row">
+                <div class="col-xl-7 pe-xl-1">
+                    <!-- Purchase details card -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h4 class="card-header-title h5">Purchase Details</h4>
+                        </div>
+                        <div class="card-body table-responsive">
+                            @if (purchaseDetails == null)
+                            {
+                                <p>Loading . . . </p>
+                            }
+                            else
+                            {
+                                @foreach (var detail in purchaseDetails)
+                                {
+                                    <div class="d-flex p-2">
+                                        <div class="flex-shrink-0 align-self-center">
+                                            <img src="@detail.IdProductNavigation.Image" class="avatar" alt="Image" />
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <div class="row">
+                                                <div class="col-lg-12 mb-4 mb-sm-1">
+                                                    <p class="fw-bold mb-0">@detail.IdProductNavigation.Name 
+                                                        <span class="badge bg-secondary ms-2">@detail.IdProductNavigation.Stock in stock</span>
+                                                    </p>
+                                                    <span class="d-block">Brand: <em>@detail.IdProductNavigation.Brand</em></span>
+                                                    <span>Details: <em>@detail.IdProductNavigation.Specification</em></span>
+                                                </div>
+                                                <div class="col-12 col-sm-4 align-self-center">
+                                                    <p class="fw-bold mb-0">$@detail.IdProductNavigation.Price</p>
+                                                </div>
+                                                <div class="col-12 col-sm-4 align-self-center">
+                                                    <InputNumber id="stock" @bind-Value="detail.Quantity" class="form-control" @oninput="@((e) => VerifyQuantity(detail, (e.Value==null)?string.Empty:e.Value.ToString()))" />
+                                                    <ValidationMessage For="@(() => detail.Quantity)" />
+                                                </div>
+                                                <div class="col-12 col-sm-4 align-self-center text-sm-end">
+                                                    <span>$@(detail.Quantity*detail.IdProductNavigation.Price)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="my-4">
+                                }
+                            }   
+                            <button type="button" class="btn btn-white btn-white-hover w-100" @onclick="() => Modal.Open()">
+                                <i class="oi oi-plus"></i>  Add a product to Purchase
+                            </button> 
+                        </div>
+                    </div>
+                    <!-- End Purchase details card -->
+                </div>
+                <div class="col-xl-5">
+                    <!-- customer details card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-header-title h5">Customer Information</h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Id == 0)
+                            {
+                                <div>
+                                    <InputSelect id="customer" @bind-Value="purchase.IdCustomer" class="form-control" >
+                                        <option value="0" selected disabled hidden>Select a customer</option>
+                                        @foreach (var customer in customers)
+                                        {
+                                            <option value="@customer.Id">@customer.FirstName</option>
+                                        }
+                                    </InputSelect>
+                                    <hr class="my-3" />
+                                    <p class="fw-bold mb-0">Contact:</p>
+                                    <p class="mb-0">@GetCustomer(purchase.IdCustomer).PhoneNumber</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning mb-0" role="alert">
+                                    <strong>Warning!</strong> You can't change the customer of a Purchase.
+                                </div>       
+                            }
+                        </div>
+                    </div>
+                    <!-- End customer details card -->
+                    <!-- Purchase information card -->
+                    <div class="my-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-header-title h5">Purchase Information</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 row">
+                                    <label for="grossamount" class="col-sm-3 align-self-center">Subtotal</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <InputNumber id="grossamount" @bind-Value="purchase.GrossAmount" class="form-control" readonly />
+                                            <ValidationMessage For="@(() => purchase.GrossAmount)" /> 
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="tax" class="col-sm-3 align-self-center">Tax</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text">%</span>
+                                            <InputNumber id="tax" @bind-Value="purchase.Tax" class="form-control" onchange="GetTotal()" />
+                                            <ValidationMessage For="@(() => purchase.Tax)" /> 
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="discount" class="col-sm-3 align-self-center">Discount</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text">%</span>
+                                            <InputNumber id="discount" @bind-Value="purchase.Discount" class="form-control" onchange="GetTotal()" />
+                                            <ValidationMessage For="@(() => purchase.Discount)" />
+                                        </div> 
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="netamount" class="col-sm-3 align-self-center">Total</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <InputNumber id="netamount" @bind-Value="purchase.NetAmount" class="form-control" readonly />
+                                            <ValidationMessage For="@(() => purchase.NetAmount)" />
+                                        </div> 
+                                    </div>
+                                </div>
+                                <div class="mb-3 row">
+                                    <label for="payment" class="col-sm-3 align-self-center">Amount paid</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <InputNumber id="payment" @bind-Value="purchase.Payment" class="form-control" />
+                                            <ValidationMessage For="@(() => purchase.Payment)" /> 
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p>Total: <span class="fw-bold text-end">$@GetTotal()</span></p>
+                                    <p>Payment Status: </p>
+                                    @if (@purchase.Payment > @total)
+                                    {
+                                        <p class="text-danger">The amount paid is greater than the total</p>
+                                    } 
+                                    else if (@purchase.Payment < @total)
+                                    {
+                                        <p class="text-danger">The amount paid is less than the total</p>
+                                    } 
+                                    else
+                                    {
+                                        <span>Amount paid is equal to the total</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Purchase information card -->
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary fw-bold mt-2">@btnText</button>
+                </div>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>You are not authorized to access this page</strong>
+            <p>You must be an administrator to edit a purchase</p>
+            <p>Please <a href="/login">login</a> as an administrator</p>
+        </div>
+    }    
+</div>
+
+<!-- Alert -->
+<div class="@messageCssClass alert-dismissible alert-fixed position-fixed bottom-0" hidden="@hideMessage" role="alert">
+    <span>@message</span>
+    <a href="Purchase/@IdNewPurchase" hidden="@hideLink">Edit the Purchase</a>
+    <button type="button" class="btn-close" @onclick="ToggleMessage"></button>
+</div>
+
+<!-- Modal for adding a product to Purchase -->
+<ProductListPurchase @ref="Modal"
+        Title="Select the products" 
+        OnSave="@OnConfirm" />
+@* <CascadingValue Value="@PurchaseDetails"></CascadingValue> *@
+
+
+
+@code {
+    private ProductListPurchase Modal { get; set; } = new ProductListPurchase();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private AddPurchaseDto purchase = new AddPurchaseDto();
+    private List<GetCustomerDto> customers = new List<GetCustomerDto>();
+    private List<GetPurchaseDetailDto> purchaseDetails = new List<GetPurchaseDetailDto>();
+
+    private decimal total = 0;    
+    private string message = string.Empty;
+    private string messageCssClass = string.Empty;
+    private string btnText = "Add the Purchase";
+    private bool hideMessage = true;
+    private bool hideLink = true;
+
+    private int IdNewPurchase = 0;
+    private bool isAuthorized = true;
+
+    protected override async Task OnInitializedAsync() => await Reloadcustomers();
+
+    private async Task Reloadcustomers()
+    {
+        var response = await CustomerService.GetCustomers();
+
+        if (response.Success && response.Data!=null)
+        {
+            customers = response.Data;
+        }
+        else
+        {
+            message = response.Message;
+            messageCssClass = "alert-danger";
+            hideMessage = false;
+        }
+    }
+
+    protected void OnConfirm(List<GetPurchaseDetailDto> purchaseDetails)
+    {
+        this.purchaseDetails = purchaseDetails;
+        this.total = GetTotal();
+        StateHasChanged();
+    }
+        
+    protected override async Task OnParametersSetAsync()
+    {
+        hideMessage = true;
+        if (Id > 0)
+        {
+            bool isAdmin = await AuthService.IsInRoleAdmin("Administrator");
+            if (!isAdmin)
+            {
+                isAuthorized = false;
+                return;
+            }
+
+            await LoadPurchase();
+            btnText = "Edit the Purchase";
+        }
+        else
+        {
+            purchase = new AddPurchaseDto();
+            btnText = "Add the Purchase";
+        }
+    }
+
+    private async Task LoadPurchase()
+    {
+        var response = await PurchaseService.GetPurchase(Id);
+
+        if (response.Success && response.Data!=null)
+        {
+            var updPurchase = response.Data;
+            purchase = new AddPurchaseDto
+            {
+                IdCustomer = updPurchase.IdCustomer,
+                Discount = updPurchase.Discount,
+                Payment = updPurchase.Payment,
+                Tax = updPurchase.Tax,
+                NetAmount = updPurchase.NetAmount,
+                GrossAmount = updPurchase.GrossAmount
+            };
+            purchaseDetails = updPurchase.PurchaseDetails.ToList();
+        }
+        else
+        {
+            ShowMessage(false, response.Message) ;
+        }
+    }
+
+    private async Task HandleAddOrUpdatePurchase()
+    {
+        if (Id > 0)
+        {
+            UpdatePurchaseDto updPurchase = new UpdatePurchaseDto
+            {
+                Id = this.Id,
+                IdCustomer = purchase.IdCustomer,
+                Discount = purchase.Discount,
+                Payment = purchase.Payment,
+                Tax = purchase.Tax,
+                NetAmount = purchase.NetAmount,
+                GrossAmount = purchase.GrossAmount
+            };
+            
+            updPurchase.PurchaseDetails = purchaseDetails.Select(x => new UpdatePurchaseDetailDto
+            {
+                IdProduct = x.IdProduct,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList();
+
+            var response = await PurchaseService.UpdatePurchase(updPurchase);
+            if (response.Success)
+                ShowMessage(true, "The Purchase has been updated");
+            else
+                ShowMessage(false, response.Message);
+            hideLink = true;
+        }
+        else
+        {
+            purchase.PurchaseDetails = purchaseDetails.Select(x => new AddPurchaseDetailDto
+            {
+                IdProduct = x.IdProduct,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice
+            }).ToList();
+
+            var response = await PurchaseService.AddPurchase(purchase);
+            if (response.Success && response.Data!=null)
+            {
+                IdNewPurchase = response.Data.Id;
+                hideLink = false;
+                ShowMessage(true, "Purchase added successfully.");
+            }
+            else
+            {
+                hideLink = true;
+                ShowMessage(false, response.Message);
+            }
+            hideMessage = false;
+        }
+    }
+
+    private void ShowMessage(bool isValid, string Message)
+    {
+        if (isValid)
+        {
+            message = Message;
+            messageCssClass = "alert alert-success";
+        }
+        else
+        {
+            message = Message;
+            messageCssClass = "alert alert-danger";
+        }
+        hideMessage = false;
+    }
+
+    private void ToggleMessage()
+    {
+        hideMessage = true;
+        hideLink = true;
+        message = string.Empty;
+        messageCssClass = string.Empty;
+    }
+
+    private decimal GetTotal()
+    {
+        var subtotal = purchaseDetails.Sum(x => x.UnitPrice * x.Quantity);
+        purchase.GrossAmount = subtotal;
+        total = subtotal - (subtotal * (purchase.Discount / 100)) + (subtotal * (purchase.Tax / 100));
+        purchase.NetAmount = total;
+        return total;
+    }
+
+    private GetCustomerDto GetCustomer(int id)
+    {
+        var customer = customers.FirstOrDefault(x => x.Id == id);
+        return (customer!=null) ? customer : new GetCustomerDto();
+    }
+    
+    private void VerifyQuantity(GetPurchaseDetailDto detail, string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            detail.Quantity = 0;
+            return;
+        }
+
+        if (int.TryParse(value, out var quantity))
+            if (quantity > detail.IdProductNavigation.Stock)
+                detail.Quantity = detail.IdProductNavigation.Stock;
+
+        if (quantity == 0){
+            purchaseDetails.Remove(detail);
+        }
+    }
+}

@@ -2,6 +2,8 @@ namespace InventoryApp.Client.Services
 {
     public interface IAuthService
     {
+        Task<bool> IsAuthenticated();
+        Task<bool> IsInRoleAdmin(string role);
         Task<ServiceResponse<int>> Register(AddEmployeeDto request);
         Task<ServiceResponse<string>> Login(EmployeeLoginDto request);
         Task<ServiceResponse<bool>> ForgotPassword(ForgotPasswordRequest request);

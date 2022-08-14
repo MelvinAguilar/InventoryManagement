@@ -37,7 +37,7 @@
     <EditForm Model="product" OnValidSubmit="HandleAddOrUpdateProduct">
         <DataAnnotationsValidator />
         <div class="row">
-            <div class="col-lg-7">
+            <div class="col-xl-7 pe-xl-1">
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-header-title h5">Product information</h4>
@@ -71,19 +71,20 @@
                             <ValidationMessage For="@(() => product.Image)" />       
                         </div>
                         <div class="text-center">
-                            <img src="@imgUrl" class="img-fluid" alt="Product Image" style="max-height: 400px;" />
+                            <img src="@product.Image" class="img-fluid" alt="Product Image" style="max-height: 400px;" />
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-5">
+            <div class="col-xl-5">
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-header-title h5">Inventory and Price</h4>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <label for="price">Price</label>
+                        <label for="price">Price</label>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">$</span>
                             <InputNumber id="price" @bind-Value="product.Price" class="form-control" />
                             <ValidationMessage For="@(() => product.Price)" />
                         </div>
@@ -124,7 +125,9 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary mt-2">@btnText</button>
+            <div>
+                <button type="submit" class="btn btn-primary mt-2">@btnText</button>
+            </div>
         </div>
     </EditForm>
 </div>
@@ -142,7 +145,7 @@
     private AddProductDto product = new AddProductDto();
     private List<GetCategoryDto> categories = new List<GetCategoryDto>();
 
-    private string imgUrl = string.Empty;
+    //private string imgUrl = string.Empty;
     private string message = string.Empty;
     private string messageCssClass = string.Empty;
     private string btnText = "Add the product";
@@ -199,8 +202,11 @@
                 Specification = updProduct.Specification,
                 Price = updProduct.Price,
                 Stock = updProduct.Stock,
+                Image = updProduct.Image,
                 IdCategory = updProduct.IdCategory
             };
+            
+            StateHasChanged();
         }
         else
         {
@@ -210,11 +216,11 @@
 
     private async Task HandleAddOrUpdateProduct()
     {
-        if (imgUrl == string.Empty || imgUrl == null)
+        /*if (imgUrl == string.Empty || imgUrl == null)
         {
             ShowMessage(false, "You must upload an image");
             return;
-        }
+        }*/
 
         if (Id > 0)
         {
@@ -226,6 +232,7 @@
                 Specification = product.Specification,
                 Price = product.Price,
                 Stock = product.Stock,
+                Image = product.Image,
                 IdCategory = product.IdCategory
             };
 
@@ -294,8 +301,15 @@
         var buffer = new byte[resizedImage.Size];
         await resizedImage.OpenReadStream().ReadAsync(buffer);
         var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
-        imgUrl = imageData;
 
-        product.Image = buffer;
+        product.Image = imageData;
+    }
+
+    private string ReturnImageUrl(byte[]? imageBytes)
+    {
+        if (imageBytes == null)
+            return "/images/no-image.png";
+        var format = "image/png";
+        return $"data:{format};base64,{Convert.ToBase64String(imageBytes)}";
     }
 }

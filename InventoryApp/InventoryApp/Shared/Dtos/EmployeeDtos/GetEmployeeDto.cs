@@ -20,6 +20,6 @@ namespace InventoryApp.Shared.Dtos.EmployeeDtos
         [Column("phone_number")]
         public string PhoneNumber { get; set; } = null!;
         [Column("avatar")]
-        public byte[]? Avatar { get; set; }
+        public string Avatar { get; set; } = null!;
     }
 }

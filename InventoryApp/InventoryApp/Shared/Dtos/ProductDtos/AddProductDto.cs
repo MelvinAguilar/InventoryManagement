@@ -33,7 +33,7 @@ namespace InventoryApp.Shared.Dtos.ProductDtos
         public decimal Price { get; set; }
         [Required]
         [Column("image")]
-        public byte[]? Image { get; set; }
+        public string Image { get; set; } = null!;
         [Required, Range(1, int.MaxValue, ErrorMessage = "Please enter a valid category")]
         [Column("id_category")]
         public int IdCategory { get; set; }

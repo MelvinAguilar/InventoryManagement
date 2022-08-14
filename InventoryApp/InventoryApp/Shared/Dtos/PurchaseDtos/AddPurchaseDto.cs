@@ -17,11 +17,9 @@ namespace InventoryApp.Shared.Dtos.PurchaseDtos
         [Required]  
         [Column("gross_amount", TypeName = "money")]
         public decimal GrossAmount { get; set; }
-        [Required, RegularExpression(@"^\d+\.\d{0,2}$")]
         [Range(0, 100, ErrorMessage = "Tax must be between 0 and 100")]
         [Column("tax", TypeName = "decimal(5, 2)")]
         public decimal Tax { get; set; }
-        [Required, RegularExpression(@"^\d+\.\d{0,2}$")]
         [Range(0, 100, ErrorMessage = "Discount must be between 0 and 100")]
         [Column("discount", TypeName = "decimal(5, 2)")]
         public decimal Discount { get; set; }

@@ -1,0 +1,154 @@
+﻿@inject IProductService ProductService
+
+@inject IJSRuntime JSRuntime
+
+<div class="modal @ModalClass" id="exampleModalCenter" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">@Title</h5>
+                <button type="button" class="close" data-dismiss="modal" @onclick="() => Close()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body table-responsive" style="max-height: 50vh;">
+                @*  *@
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Brand</th>
+                                <th>Category</th>
+                                <th style="width: 6.7rem;">-</th>
+                            </tr>
+                        </thead>
+                        <tbody style="overflow-wrap: anywhere;">
+                            @foreach (var product in products)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="img-container text-center mb-1">
+                                            <img src="@product.Image" class="avatar" alt="Image" />
+                                        </div>
+                                        <div class="text-container text-center">
+                                            <h6 class="mb-0">@product.Name</h6>
+                                            <small>@product.Specification</small>
+                                        </div>
+                                    </td>
+                                    <td>$@product.Price</td>
+                                    <td>@product.Stock</td>
+                                    <td>@product.Brand</td>
+                                    <td>@product.IdCategoryNavigation.Name</td>
+                                    <td><input type="number" @bind="product.Quantity" @oninput="@((e) => ChangeQuantity(product, (e.Value==null)?string.Empty:e.Value.ToString()))"
+                                        class="form-control" name="quantity" min="0" max="@product.Stock" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>             
+                @*  *@
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => Close()">Close</button>
+                <button type="button" class="btn btn-primary"  @onclick="() => SaveChanges()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [CascadingParameter]
+    public List<GetPurchaseDetailDto> PurchaseDetailsCurrent { get; set; } = new List<GetPurchaseDetailDto>();
+    [Parameter]
+    public EventCallback<List<GetPurchaseDetailDto>> OnSave { get; set; }
+
+    private bool ShowBackdrop = false;
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+
+    private List<GetProductDto> products = new List<GetProductDto>();
+
+    public async void Open() {
+        await GetAll();
+        foreach (var purchaseDetail in PurchaseDetailsCurrent)
+        {
+            var product = products.FirstOrDefault(x => x.Id == purchaseDetail.IdProduct);
+            if (product != null)
+                product.Quantity = purchaseDetail.Quantity;
+        }
+
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    private async Task SaveChanges()
+    {
+        await OnSave.InvokeAsync(PurchaseDetailsCurrent);
+        
+        Close();
+    }
+
+    private async Task GetAll()
+    {
+        var result = await ProductService.GetProducts();
+        if (result.Success && result.Data != null)
+            products = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+
+    private void ChangeQuantity(GetProductDto product, string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return;
+        
+        if (int.TryParse(value, out var quantity))
+        {
+            if (quantity > product.Stock) 
+                quantity = product.Stock;
+            product.Quantity = quantity;
+
+            var purchaseDetail = PurchaseDetailsCurrent.FirstOrDefault(x => x.IdProduct == product.Id);
+            if (purchaseDetail == null)
+            {
+                PurchaseDetailsCurrent.Add(new GetPurchaseDetailDto { 
+                    IdProduct = product.Id, 
+                    Quantity = quantity,
+                    UnitPrice = product.Price,
+                    IdProductNavigation = product
+                });
+            } 
+            else
+            {
+                if (quantity == 0)
+                {
+                    PurchaseDetailsCurrent.Remove(purchaseDetail);
+                    return;
+                }
+
+                purchaseDetail.Quantity = quantity;
+                purchaseDetail.UnitPrice = product.Price;
+            }
+        }
+    }
+}

@@ -30,47 +30,45 @@
             </div>
             <div class="card-body">
                 <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Specification</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Brand</th>
-                        <th>Category</th>
-                        <th style="width: 6.7rem;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody style="overflow-wrap: anywhere;">
-                    @foreach (var product in products)
-                    {
+                    <thead>
                         <tr>
-                            <td>
-                                <div class="img-container">
-                                    <img src="@ReturnImageUrl(@product.Image)" class="avatar" alt="Image" />
-                                </div>
-                                <div class="text-container">
-                                    <h6 class="mb-0">@product.Name</h6>
-                                    <small>@product.Specification</small>
-                                </div>
-                            </td>
-                            <td>@product.Specification</td>
-                            <td>$@product.Price</td>
-                            <td>@product.Stock</td>
-                            <td>@product.Brand</td>
-                            <td>@product.IdCategoryNavigation.Name</td>
-                            <td class="align-middle text-center">
-                                <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdateProduct(product.Id))">
-                                    <i class="oi oi-pencil"></i>
-                                </button>
-                                <button class="btn btn-white btn-white-hover" @onclick="@(() => DeleteProduct(product.Id))">
-                                    <i class="oi oi-trash"></i>
-                                </button>
-                            </td>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Brand</th>
+                            <th>Category</th>
+                            <th style="width: 6.7rem;">Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody style="overflow-wrap: anywhere;">
+                        @foreach (var product in products)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="img-container">
+                                        <img src="@product.Image" class="avatar" alt="Image" />
+                                    </div>
+                                    <div class="text-container">
+                                        <h6 class="mb-0">@product.Name</h6>
+                                        <small>@product.Specification</small>
+                                    </div>
+                                </td>
+                                <td>$@product.Price</td>
+                                <td>@product.Stock</td>
+                                <td>@product.Brand</td>
+                                <td>@product.IdCategoryNavigation.Name</td>
+                                <td class="align-middle text-center">
+                                    <button class="btn btn-white btn-white-hover" @onclick="@(() => UpdateProduct(product.Id))">
+                                        <i class="oi oi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-white btn-white-hover" @onclick="@(() => DeleteProduct(product.Id))">
+                                        <i class="oi oi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="card-footer">

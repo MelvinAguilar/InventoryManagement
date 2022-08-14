@@ -21,9 +21,11 @@ namespace InventoryApp.Shared.Dtos.ProductDtos
         [Column("price", TypeName = "money")]
         public decimal Price { get; set; }
         [Column("image")]
-        public byte[]? Image { get; set; }
+        public string Image { get; set; } = null!;
         [Column("id_category")]
         public int IdCategory { get; set; }
+        [NotMapped]
+        public int Quantity { get; set; }
 
         [ForeignKey("IdCategory")]
         [InverseProperty("Products")]

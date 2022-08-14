@@ -1,22 +1,45 @@
+using System.Net;
+
 namespace InventoryApp.Client.Services.Impl
 {
     public class AuthService : IAuthService
     {
         private readonly HttpClient _httpClient;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-        public AuthService(HttpClient httpClient)
+        public AuthService(HttpClient httpClient, AuthenticationStateProvider authenticationStateProvider)
         {
             _httpClient = httpClient;
+            _authenticationStateProvider = authenticationStateProvider;
+        }
+
+        public async Task<bool> IsAuthenticated()
+        {
+            var authToken = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            return (authToken.User.Identity==null) ? false : authToken.User.Identity.IsAuthenticated;
+        }
+
+        public async Task<bool> IsInRoleAdmin(string role)
+        {
+            var authToken = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var claim = authToken.User.Claims.FirstOrDefault(c => c.Type == "role");
+            return (claim==null) ? false : claim.Value == role;
         }
 
         public async Task<ServiceResponse<string>> Login(EmployeeLoginDto request)
         {
-            var result = await _httpClient.PostAsJsonAsync("api/auth/login", request);
-            var serviceResponse = await result.Content.ReadFromJsonAsync<ServiceResponse<string>>();
-                      
-            return (serviceResponse != null) ? 
-                serviceResponse : 
-                new ServiceResponse<string> { Success = false, Message = "Error while logging in" };
+            try
+            {
+                var result = await _httpClient.PostAsJsonAsync("api/auth/login", request);
+                return Response.HandleResponse(
+                    await result.Content.ReadFromJsonAsync<ServiceResponse<string>>());
+            }
+            catch (HttpRequestException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.NotFound)
+                    return Response.ErrorResponse<string>("Employee not found");
+                return Response.ErrorResponse<string>("An error occurred " + ex.Message);
+            }
         }
 
         public async Task<ServiceResponse<int>> Register(AddEmployeeDto request)
@@ -32,21 +55,15 @@ namespace InventoryApp.Client.Services.Impl
         public async Task<ServiceResponse<bool>> ForgotPassword(ForgotPasswordRequest request)
         {
             var result = await _httpClient.PostAsJsonAsync("api/auth/forgot-password", request.Email);
-            var serviceResponse = await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>();
-
-            return (serviceResponse != null) ? 
-                serviceResponse : 
-                new ServiceResponse<bool> { Success = false, Message = "Error while sending forgot password email" };
+            return Response.HandleResponse(
+                await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>());
         }
 
         public async Task<ServiceResponse<bool>> ResetPassword(ResetPasswordRequest request)
         {
             var result = await _httpClient.PostAsJsonAsync("api/auth/reset-password", request);
-            var serviceResponse = await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>();
-
-            return (serviceResponse != null) ? 
-                serviceResponse : 
-                new ServiceResponse<bool> { Success = false, Message = "Error while resetting password" };
+            return Response.HandleResponse(
+                await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>());
         }
 
     }
