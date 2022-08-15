@@ -66,5 +66,11 @@ namespace InventoryApp.Client.Services.Impl
                 await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>());
         }
 
+        public async Task<ServiceResponse<bool>> UpdatePassword(UpdatePasswordRequest request)
+        {
+            var result = await _httpClient.PostAsJsonAsync("api/auth/update-password", request);
+            return Response.HandleResponse(
+                await result.Content.ReadFromJsonAsync<ServiceResponse<bool>>());
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 <AuthorizeView>
     <Authorized>
+        <button class="nav-link btn btn-link" @onclick="Profile">Profile</button>
         <button class="nav-link btn btn-link" @onclick="BeginSignOut">Sign Out</button>
     </Authorized>
     <NotAuthorized>
@@ -16,5 +17,9 @@
         await LocalStorage.RemoveItemAsync("authToken");
         await AuthenticationStateProvider.GetAuthenticationStateAsync();
         Navigation.NavigateTo("/login");
+    }
+
+    private void Profile(MouseEventArgs args) {
+        Navigation.NavigateTo("/profile");
     }
 }

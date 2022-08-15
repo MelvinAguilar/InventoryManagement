@@ -145,7 +145,7 @@ namespace InventoryApp.Server.Repository.impl
         /// <param name="oldPassword">Old password</param>
         /// <param name="newPassword">New password</param>
         /// <returns>True if password was changed, false otherwise</returns>
-        public async Task<ServiceResponse<bool>> ChangePassword(int employeeId, string oldPassword, string newPassword)
+        public async Task<ServiceResponse<bool>> UpdatePassword(int employeeId, string oldPassword, string newPassword)
         {
             var response = new ServiceResponse<bool>();
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);

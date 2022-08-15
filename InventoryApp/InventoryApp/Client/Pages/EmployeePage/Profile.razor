@@ -1,0 +1,76 @@
+﻿@page "/profile"
+@inject NavigationManager Navigation
+@inject IEmployeeService EmployeeService
+@inject IAuthService AuthService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Profile</PageTitle>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Profile</li>
+        </ol>
+    </nav>
+    
+    @if (employee == null) 
+    {
+        <p>Loading...</p>
+    }
+    else
+    {        
+        <div class="row">
+            <div class="col-12 bg-blue-gradiant" style="height: 20vh;"></div>
+            <div class="text-center img-fluid">
+                <img src="@employee.Avatar" class="avatar" alt="Image" style="margin-top: -6.5rem;max-width: 150px;" />
+            </div>
+            <h5 class="card-title">@employee.FirstName</h5>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="card-text">
+                            <span class="font-weight-bold">First Name:</span> @employee.FirstName
+                            <br />
+                            <span class="font-weight-bold">Last Name:</span> @employee.LastName
+                            <br />
+                            <span class="font-weight-bold">Email:</span> @employee.Email
+                            <br />
+                            <span class="font-weight-bold">Phone:</span> @employee.PhoneNumber
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/employee/update-password/@employee.Id" class="btn btn-primary">Change Password</a> |
+                        <a href="/employee/@employee.Id" class="btn btn-primary">Edit information</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+@code {
+    private GetEmployeeDto? employee;
+    private bool isAuthorized = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMe();
+    }
+
+    private async Task GetMe()
+    {
+        var result = await EmployeeService.GetMe();
+        if (result.Success)
+            employee = result.Data;
+        else
+            await JSRuntime.InvokeAsync<string>("alert", result.Message);
+
+        StateHasChanged();
+    }
+}

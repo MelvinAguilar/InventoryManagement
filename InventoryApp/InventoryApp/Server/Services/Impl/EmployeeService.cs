@@ -64,6 +64,29 @@ namespace InventoryApp.Server.Services.Impl
         }
 
         /// <summary>
+        /// Get current employee
+        /// </summary>
+        /// <returns>Employee wrapped in a service response</returns>
+        public async Task<ServiceResponse<GetEmployeeDto>> GetMe()
+        {
+            var response = new ServiceResponse<GetEmployeeDto>();
+            var id = GetAuthenticatedEmployeeId();
+            var employee = await _context.Employees.FindAsync(id);
+
+            if (employee == null)
+            {
+                response.Success = false;
+                response.Message = "Employee not found";
+            }
+            else
+            {
+                response.Data = _mapper.Map<GetEmployeeDto>(employee);
+            }
+
+            return response;
+        }
+
+        /// <summary>
         /// Update employee in database
         /// </summary>
         /// <param name="id">Employee Id</param>

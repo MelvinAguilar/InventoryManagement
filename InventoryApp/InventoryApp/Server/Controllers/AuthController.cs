@@ -41,6 +41,13 @@ namespace InventoryApp.Server.Controllers
             return HandleResponse(await _authRepository.ResetPassword(request));
         }
 
+        [Authorize]
+        [HttpPost("update-password")]
+        public async Task<ActionResult<ServiceResponse<bool>>> UpdatePassword(UpdatePasswordRequest request)
+        {
+            return HandleResponse(await _authRepository.UpdatePassword(request.Id, request.OldPassword, request.NewPassword));
+        }
+
         private ActionResult<ServiceResponse<T>> HandleResponse<T> (ServiceResponse<T> response)
         {
             return (response.Success) ? Ok(response) : BadRequest(response); 

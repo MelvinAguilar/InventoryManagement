@@ -12,8 +12,6 @@
   <p align="center">
     A simple Full-Stack Project
     <br />
-    <a href="https://github.com/MelvinAguilar/InventoryManagement">View Demo</a>
-    ·
     <a href="https://github.com/MelvinAguilar/InventoryManagement/issues">Report Bug</a>
     ·
     <a href="https://github.com/MelvinAguilar/InventoryManagement/issues">Request Feature</a>
@@ -58,7 +56,11 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-   [...]
+This project is created to put into practice the basic concepts to create web apps with Razor Pages and Web APIs
+
+Preview:
+
+![](images/screenshot.png)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -139,7 +141,8 @@ In Visual Studio IDE only open the `InventoryApp.sln` file and run
     - [x] Purchase service
     - [x] Supply service
 - [x] Add login page
-- [ ] Create a custom authentication provider
+- [x] Create a custom authentication provider
+- [x] Create main pages
 
 See the [open issues](https://github.com/MelvinAguilar/InventoryManagement/issues) for a full list of proposed features (and known issues).
 

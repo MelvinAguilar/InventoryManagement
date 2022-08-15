@@ -1,0 +1,258 @@
+﻿@page "/employee/"
+@page "/employee/{id:int}"
+@inject NavigationManager Navigation
+@inject IEmployeeService EmployeeService
+@inject IAuthService AuthService
+@attribute [Authorize]
+
+<PageTitle>Employee Form</PageTitle>
+
+<div class="p-3 my-3 align-items-center text-white bg-blue-gradiant rounded shadow">
+    @if (Id > 0)
+    {
+        <h1 class="h3 mb-0 text-center">Edit employee</h1>
+    }
+    else
+    {
+        <h1 class="h3 mb-0 text-center">Add a new employee</h1>
+    }  
+</div>
+
+<div class="my-3 p-3 bg-white rounded shadow">
+    <nav aria-label="breadcrumb" class="border-bottom mt-1">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="employees">Employee</a></li>
+            @if (Id > 0)
+            {
+                <li class="breadcrumb-item active" aria-current="page">Edit employee</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Add employee</li>
+            }
+        </ol>
+    </nav>
+    <div class="row my-1 justify-content-end">
+        <div class="col-sm-auto">
+            <button class="btn btn-default" @onclick="Clear">
+                <i class="oi oi-trash"></i> Clear the form
+            </button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-header-title h5">Employee information</h4>
+        </div>
+        <div class="card-body">
+            @if (isAuthorized)
+            {
+                <EditForm Model="employee" OnValidSubmit="HandleAddOrUpdateemployee">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="fname">First Name</label>
+                        <InputText id="fname" @bind-Value="employee.FirstName" type="text" class="form-control" placeholder="John" />
+                        <ValidationMessage For="@(() => employee.FirstName)" />       
+                    </div>
+                    <div class="mb-3">
+                        <label for="lname">Last Name</label>
+                        <InputText id="lname" @bind-Value="employee.LastName" type="text" class="form-control" placeholder="Smith" />
+                        <ValidationMessage For="@(() => employee.LastName)" />       
+                    </div>
+                    <div class="mb-3">
+                        <label for="email">Email</label>
+                        <InputText id="email" @bind-Value="employee.Email" type="text" class="form-control" placeholder="user@gmail.com" />
+                        <ValidationMessage For="@(() => employee.Email)" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone">Phone Number</label>
+                        <InputText id="phone" @bind-Value="employee.PhoneNumber" type="text" class="form-control" placeholder="### ####-####" />
+                        <ValidationMessage For="@(() => employee.PhoneNumber)" />
+                    </div>
+                    @if (Id == 0)
+                    {
+                        <div class="mb-3">
+                            <label for="password">Password</label>
+                            <InputText id="password" @bind-Value="employee.Password" type="password" class="form-control" />
+                            <ValidationMessage For="@(() => employee.Password)" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="role">Role</label>
+                            <InputSelect id="role" @bind-Value="employee.IdRole" class="form-control">
+                                <option value="" selected disabled hidden>Select a role</option>
+                                <option value="0">Administrator</option>
+                                <option value="1">Employee</option>
+                            </InputSelect>
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label for="image">Upload image</label>
+                        <InputFile id="image" @bind-Value="employee.Avatar" type="file" class="form-control" OnChange="OnFileChange" accept="image/png, image/jpeg" />
+                        <ValidationMessage For="@(() => employee.Avatar)" />       
+                    </div>
+                    <div class="text-center">
+                        <img src="@employee.Avatar" class="img-fluid" alt="Product Image" style="max-height: 400px;" />
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">@btnText</button>
+                </EditForm>
+            }
+            else
+            {
+                <div class="alert alert-danger" role="alert">
+                    <strong>You are not authorized to access this page</strong>
+                    <p>You must be an administrator to add an employees</p>
+                    <p>Please <a href="/login">login</a> as an administrator</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+</div>
+
+<div class="@messageCssClass alert-dismissible alert-fixed position-fixed bottom-0" hidden="@hideMessage" role="alert">
+    <span>@message</span>
+    <a href="employee/@IdNewemployee" hidden="@hideLink">Edit the employee</a>
+    <button type="button" class="btn-close" @onclick="ToggleMessage"></button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private bool isAuthorized = true;
+
+    private AddEmployeeDto employee = new AddEmployeeDto();
+
+    private string message = string.Empty;
+    private string messageCssClass = string.Empty;
+    private string btnText = "Add the employee";
+    private bool hideMessage = true;
+    private bool hideLink = true;
+
+    private int IdNewemployee = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        hideMessage = true;
+        if (Id > 0)
+        {
+            await LoadEmployee();
+            btnText = "Edit the employee";
+        }
+        else
+        {
+            bool isAdmin = await AuthService.IsInRoleAdmin("Administrator");
+            if (!isAdmin)
+            {
+                isAuthorized = false;
+                return;
+            }
+
+            employee = new AddEmployeeDto();
+            btnText = "Add the employee";
+        }
+    }
+
+    private async Task LoadEmployee()
+    {
+        var response = await EmployeeService.GetEmployee(Id);
+
+        if (response.Success && response.Data!=null)
+        {
+            var updemployee = response.Data;
+                       
+            employee = new AddEmployeeDto
+            {
+                FirstName = updemployee.FirstName,
+                LastName = updemployee.LastName,
+                Email = updemployee.Email,
+                PhoneNumber = updemployee.PhoneNumber
+            };
+        }
+        else
+        {
+            ShowMessage(false, response.Message) ;
+        }
+    }
+
+    private async Task HandleAddOrUpdateemployee()
+    {
+        if (Id > 0)
+        { // Update
+            UpdateEmployeeDto updemployee = new UpdateEmployeeDto
+            {
+                Id = this.Id,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                Email = employee.Email,
+                PhoneNumber = employee.PhoneNumber
+            };
+
+            var response = await EmployeeService.UpdateEmployee(updemployee);
+            if (response.Success)
+                ShowMessage(true, "The employee has been updated");
+            else
+                ShowMessage(false, response.Message);
+            hideLink = true;
+        }
+        else
+        {
+            var response = await EmployeeService.AddEmployee(employee);
+            if (response.Success && response.Data!=null)
+            {
+                IdNewemployee = response.Data.Id;
+                hideLink = false;
+                ShowMessage(true, "employee added successfully.");
+            }
+            else
+            {
+                hideLink = true;
+                ShowMessage(false, response.Message);
+            }
+            hideMessage = false;
+        }    
+    }
+
+    private void ShowMessage(bool isValid, string Message)
+    {
+        if (isValid)
+        {
+            message = Message;
+            messageCssClass = "alert alert-success";
+        }
+        else
+        {
+            message = Message;
+            messageCssClass = "alert alert-danger";
+        }
+        hideMessage = false;
+    }
+
+    void BackTo()
+    {
+        Navigation.NavigateTo("employees");
+    }
+
+    private void Clear()
+    {
+        employee = new AddEmployeeDto();
+    }
+
+    private void ToggleMessage()
+    {
+        hideMessage = true;
+        hideLink = true;
+        message = string.Empty;
+        messageCssClass = string.Empty;
+    }
+
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        var format = "image/png";
+        var resizedImage = await e.File.RequestImageFileAsync(format, 400, 400);
+        var buffer = new byte[resizedImage.Size];
+        await resizedImage.OpenReadStream().ReadAsync(buffer);
+        var imageData = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+
+        employee.Avatar = imageData;
+    }
+}

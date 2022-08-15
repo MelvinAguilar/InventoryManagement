@@ -8,5 +8,6 @@ namespace InventoryApp.Client.Services
         Task<ServiceResponse<string>> Login(EmployeeLoginDto request);
         Task<ServiceResponse<bool>> ForgotPassword(ForgotPasswordRequest request);
         Task<ServiceResponse<bool>> ResetPassword(ResetPasswordRequest request);
+        Task<ServiceResponse<bool>> UpdatePassword(UpdatePasswordRequest request);
     }
 }

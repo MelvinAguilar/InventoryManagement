@@ -41,6 +41,21 @@ namespace InventoryApp.Client.Services.Impl
             }
         }
 
+        public async Task<ServiceResponse<GetEmployeeDto>> GetMe()
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<ServiceResponse<GetEmployeeDto>>("api/employee/profile");
+                return Response.HandleResponse(result);
+            }
+            catch (HttpRequestException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.NotFound)
+                    return Response.ErrorResponse<GetEmployeeDto>("Employee not found");
+                return Response.ErrorResponse<GetEmployeeDto>("An error occurred " + ex.Message);
+            }
+        }
+
         public async Task<ServiceResponse<GetEmployeeDto>> AddEmployee(AddEmployeeDto request)
         {
             var result = await _httpClient.PostAsJsonAsync("api/employee", request);

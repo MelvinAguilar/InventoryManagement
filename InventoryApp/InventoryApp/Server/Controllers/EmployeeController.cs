@@ -28,6 +28,13 @@ namespace InventoryApp.Server.Controllers
             return HandleResponse(await _employeeService.GetEmployeeById(id));
         }
 
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<ActionResult<ServiceResponse<GetEmployeeDto>>> GetMe()
+        {
+            return HandleResponse(await _employeeService.GetMe());
+        }
+
         [Authorize (Roles = "Administrator")]
         [HttpPut("{id}")]
         public async Task<ActionResult<ServiceResponse<bool>>> PutEmployee(int id, UpdateEmployeeDto employee)
